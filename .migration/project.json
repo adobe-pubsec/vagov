@@ -1,0 +1,11 @@
+{
+  "type": "da",
+  "sites": {
+    "vagov": {
+      "previewOrg": "jfoxx",
+      "previewSite": "vagov",
+      "contentHostUrl": "https://content.da.live/jfoxx/vagov/",
+      "libraryUrl": "https://main--sta-boilerplate--aemdemos.aem.page/tools/sidekick/library.json"
+    }
+  }
+}

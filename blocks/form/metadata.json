@@ -1,0 +1,10 @@
+{
+  "variantName": "form",
+  "baseBlock": "form",
+  "canonicalModel": "standalone",
+  "visualCharacteristics": "Simple newsletter signup: a field label ('Email address (*Required)'), a text input, and a submit button, on a light band.",
+  "contentPattern": "Row 1: field label text. Optional Row 2: submit button label.",
+  "usage": "Newsletter/email signup form with a required email field and submit action.",
+  "options": [],
+  "memberVariantIds": ["form"]
+}

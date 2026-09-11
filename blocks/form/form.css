@@ -1,0 +1,26 @@
+/* form — lightweight signup form (label + email input + submit button).
+   Structural/layout only; brand color & type left to the design pass. */
+
+.form .form-signup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 480px;
+}
+
+.form .form-signup label {
+  display: block;
+}
+
+.form .form-signup input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+}
+
+.form .form-signup button {
+  align-self: flex-start;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-top: 8px;
+}

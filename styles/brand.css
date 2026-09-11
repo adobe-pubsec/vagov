@@ -1,0 +1,35 @@
+/* brand.css — VA.gov design tokens extracted from https://www.va.gov/
+   Heading: Bitter (serif). Body: Source Sans 3 (USWDS "Source Sans Pro"). */
+
+:root {
+  /* fonts */
+  --heading-font-family: "Bitter", georgia, cambria, "Times New Roman", times, serif;
+  --body-font-family: "Source Sans 3", "Source Sans Pro", "Helvetica Neue", helvetica, arial, sans-serif;
+
+  /* colors */
+  --background-color: #fff;
+  --text-color: #1b1b1b;
+  --link-color: #005ea2;
+  --link-hover-color: #162e51;
+
+  /* VA/USWDS brand colors */
+  --va-primary: #005ea2;
+  --va-primary-dark: #1a4480;
+  --va-primary-darker: #162e51;
+  --va-primary-alt-lightest: #e1f3f8;
+  --va-base-lightest: #f0f0f0;
+
+  /* content width */
+  --content-max-width: 1024px;
+
+  /* nav height */
+  --nav-height: 64px;
+
+  /* heading sizes (desktop) */
+  --heading-size-xxl: 40px;
+  --heading-size-xl: 32px;
+  --heading-size-l: 20px;
+  --heading-size-m: 20px;
+  --heading-size-s: 18px;
+  --heading-size-xs: 16px;
+}

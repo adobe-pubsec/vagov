@@ -1,0 +1,10 @@
+{
+  "variantName": "columns-search",
+  "baseBlock": "columns",
+  "canonicalModel": "standalone",
+  "visualCharacteristics": "Light/white background, two side-by-side columns. Left column: 'Search' heading, search input, 'Other search tools' subheading and action links. Right column: 'Top pages' heading and a list of links.",
+  "contentPattern": "One row with two columns; each column holds a heading followed by content (a search area/links or a link list).",
+  "usage": "Two-column search-and-links section on a light background.",
+  "options": [],
+  "memberVariantIds": ["columns-search"]
+}

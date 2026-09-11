@@ -1,20 +1,215 @@
-footer {
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-xs);
+/* VA.gov footer — mobile-first. Dark navy, white underlined links, Bitter headings.
+   Values from https://www.va.gov/ footer computed styles. */
+
+footer .footer-wrapper,
+footer .footer {
+  background-color: var(--va-primary-darker, #162e51);
 }
 
-footer .footer > div {
-  margin: auto;
-  max-width: 1200px;
-  padding: 40px 24px 24px;
+/* Full-bleed veteran portraits banner, above the navy footer body.
+   The portraits are cut-outs, so the band must match the LAST page
+   section's background (set inline by footer.js per page). The
+   var(--background-color) here is only a fallback before JS runs. */
+.va-footer-banner {
+  width: 100%;
+  line-height: 0;
+  background-color: var(--background-color);
 }
 
-footer .footer p {
+.va-footer-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.va-footer {
+  box-sizing: border-box;
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 20px 10px 24px;
+  background-color: var(--va-primary-darker, #162e51);
+  color: #fff;
+  font-family: var(--body-font-family);
+}
+
+/* Primary link columns — stacked accordions on mobile */
+.va-footer-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.va-footer-column h2,
+.va-footer-language h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
+  font-family: var(--heading-font-family);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+  text-transform: none;
+  cursor: pointer;
+}
+
+/* +/- affordance on mobile accordion headings */
+.va-footer-column h2::after,
+.va-footer-language h2::after {
+  content: '+';
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.va-footer-column h2.open::after,
+.va-footer-language h2.open::after {
+  content: '\2013';
+}
+
+/* base list styling (declared before sibling/state rules for specificity order) */
+.va-footer-column ul {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.va-footer-language ul,
+.va-footer-legal ul {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.va-footer-legal ul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+}
+
+/* legal links laid out horizontally with pipe dividers between them */
+.va-footer-legal li {
+  display: flex;
+  align-items: center;
+}
+
+.va-footer-legal li:not(:last-child)::after {
+  content: '|';
+  margin: 0 12px;
+  color: rgb(255 255 255 / 60%);
+}
+
+/* collapsed by default on mobile; a list right after an unopened heading is hidden */
+.va-footer-column h2 + ul,
+.va-footer-language h2 + ul {
+  display: none;
+}
+
+.va-footer-column h2.open + ul,
+.va-footer-language h2.open + ul {
+  display: block;
+}
+
+.va-footer-column li {
   margin: 0;
 }
 
+.va-footer-column li a {
+  display: inline-block;
+  padding: 8px 0;
+}
+
+.va-footer-legal li a {
+  font-size: 15px;
+}
+
+.va-footer a:any-link {
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.5;
+  text-decoration: underline;
+}
+
+.va-footer a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Bottom row: logo, language, legal */
+.va-footer-bottom {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgb(255 255 255 / 40%);
+}
+
+.va-footer-logo {
+  display: inline-block;
+  margin: 16px 0;
+}
+
+.va-footer-logo img {
+  height: 49px;
+  width: auto;
+}
+
+.va-footer-legal {
+  margin-top: 8px;
+}
+
+/* Tablet: two-column link grid */
+@media (width >= 600px) {
+  .va-footer-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 32px;
+  }
+}
+
+/* Desktop: four-column link grid, centered content; accordions disabled */
 @media (width >= 900px) {
-  footer .footer > div {
-    padding: 40px 32px 24px;
+  .va-footer {
+    padding: 40px 16px 24px;
+  }
+
+  .va-footer-columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0 32px;
+  }
+
+  /* headings become plain labels (no tap target, no +/- , always open) */
+  .va-footer-column h2,
+  .va-footer-language h2 {
+    display: block;
+    margin: 0 0 8px;
+    padding: 0;
+    border-bottom: 0;
+    cursor: default;
+  }
+
+  .va-footer-column h2::after,
+  .va-footer-language h2::after {
+    content: none;
+  }
+
+  .va-footer-column h2 + ul,
+  .va-footer-language h2 + ul,
+  .va-footer-column h2.open + ul,
+  .va-footer-language h2.open + ul {
+    display: block;
+  }
+
+  .va-footer-column h2 ~ h2 {
+    margin-top: 24px;
+  }
+}
+
+@media (width >= 1200px) {
+  .va-footer {
+    max-width: 1000px;
   }
 }

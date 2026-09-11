@@ -1,0 +1,108 @@
+/* columns-search — two-column search/links section.
+   Left: Search heading + search widget + "Other search tools" links.
+   Right: "Top pages" heading + link list, on a light-blue panel.
+   Values extracted from https://www.va.gov/ computed styles. */
+
+/* Full-bleed: escape the section's 1200px content wrapper so the
+   split white/light-blue background can reach the viewport edges. */
+main .section .columns-search-wrapper {
+  max-width: 100%;
+  padding: 0;
+}
+
+.columns-search {
+  background-color: var(--background-color);
+}
+
+/* The single decorated row acts as the centered content container. */
+.columns-search > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: var(--content-max-width); /* 1024px */
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Headings — USWDS gray-dark, Bitter (inherited from global h2/h3). */
+.columns-search h2 {
+  margin: 48px 0 16px;
+  font-size: 32px;
+  line-height: 1.3;
+  color: #3d4551;
+}
+
+.columns-search h3 {
+  margin: 30px 0 10px;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #3d4551;
+}
+
+/* Link lists */
+.columns-search ul {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.columns-search li {
+  margin: 0 0 4px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.columns-search li a:any-link {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+/* Columns share equal bottom padding. */
+.columns-search > div > div {
+  padding-bottom: 40px;
+}
+
+/* Mobile: the "Top pages" (second) column gets the light-blue panel. */
+.columns-search > div > div:last-child {
+  padding: 0 16px 40px;
+  background-color: var(--va-primary-alt-lightest);
+}
+
+@media (width >= 900px) {
+  /* Full-bleed split background: white left half, light-blue right half.
+     The centered 1024px container is exactly viewport-centered, so the
+     50% split lines up with the gap between the two equal columns. */
+  main .section .columns-search {
+    background-image: linear-gradient(
+      to right,
+      var(--background-color) 0,
+      var(--background-color) 50%,
+      var(--va-primary-alt-lightest) 50%,
+      var(--va-primary-alt-lightest) 100%
+    );
+  }
+
+  .columns-search > div {
+    flex-direction: row;
+    gap: 48px;
+    align-items: flex-start;
+    padding: 0 32px;
+  }
+
+  .columns-search > div > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Gradient supplies the panel colour at desktop. */
+  .columns-search > div > div:last-child {
+    padding: 0 0 40px;
+    background-color: transparent;
+  }
+
+  /* Top-pages list flows into two sub-columns. */
+  .columns-search > div > div:last-child ul {
+    column-count: 2;
+    column-gap: 40px;
+  }
+}

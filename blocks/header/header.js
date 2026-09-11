@@ -1,171 +1,353 @@
-import { getMetadata } from '../../scripts/aem.js';
-import { loadFragment } from '../fragment/fragment.js';
+// VA.gov header: utility bar + brand/search bar + click-triggered two-level megamenu.
+// Content-first: all labels/links/images come from content/nav.plain.html.
+// This module reads that DOM and builds the interactive header generically.
 
-// media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
-function closeOnEscape(e) {
-  if (e.code === 'Escape') {
-    const nav = document.getElementById('nav');
-    const navSections = nav.querySelector('.nav-sections');
-    if (!navSections) return;
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections);
-      navSectionExpanded.focus();
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections);
-      nav.querySelector('button').focus();
-    }
-  }
-}
-
-function closeOnFocusLost(e) {
-  const nav = e.currentTarget;
-  if (!nav.contains(e.relatedTarget)) {
-    const navSections = nav.querySelector('.nav-sections');
-    if (!navSections) return;
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections, false);
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections, false);
-    }
-  }
-}
-
-function openOnKeydown(e) {
-  const focused = document.activeElement;
-  const isNavDrop = focused.className === 'nav-drop';
-  if (isNavDrop && (e.code === 'Enter' || e.code === 'Space')) {
-    const dropExpanded = focused.getAttribute('aria-expanded') === 'true';
-    // eslint-disable-next-line no-use-before-define
-    toggleAllNavSections(focused.closest('.nav-sections'));
-    focused.setAttribute('aria-expanded', dropExpanded ? 'false' : 'true');
-  }
-}
-
-function focusNavSection() {
-  document.activeElement.addEventListener('keydown', openOnKeydown);
-}
-
 /**
- * Toggles all nav sections
- * @param {Element} sections The container element
- * @param {Boolean} expanded Whether the element should be expanded or collapsed
+ * Fetch the nav fragment (metadata-independent dual-fetch:
+ * /content first for localhost/aem-up, then root for DA/EDS production).
  */
-function toggleAllNavSections(sections, expanded = false) {
-  if (!sections) return;
-  sections.querySelectorAll('.nav-sections .default-content-wrapper > ul > li').forEach((section) => {
-    section.setAttribute('aria-expanded', expanded);
+async function fetchNav() {
+  let resp = await fetch('/content/nav.plain.html');
+  if (!resp.ok) resp = await fetch('/nav.plain.html');
+  if (!resp.ok) return null;
+  const html = await resp.text();
+  const tpl = document.createElement('div');
+  tpl.innerHTML = html;
+  return tpl;
+}
+
+/** Close every open top-level menu. */
+function closeAllMenus(nav) {
+  nav.querySelectorAll('.va-nav-item.open').forEach((li) => {
+    li.classList.remove('open');
+    const btn = li.querySelector(':scope > button');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    li.querySelectorAll('.va-cat.open').forEach((c) => {
+      c.classList.remove('open');
+      const cb = c.querySelector(':scope > button');
+      if (cb) cb.setAttribute('aria-expanded', 'false');
+    });
   });
 }
 
 /**
- * Toggles the entire nav
- * @param {Element} nav The container element
- * @param {Element} navSections The nav sections within the container element
- * @param {*} forceExpanded Optional param to force nav expand behavior when not null
+ * Build a second-level category (button + grouped-links panel), used inside
+ * a two-level top menu. `catLi` is the source <li> containing a <p>/<a> label
+ * and a nested <ul> of groups.
  */
-function toggleMenu(nav, navSections, forceExpanded = null) {
-  const expanded = forceExpanded !== null ? !forceExpanded : nav.getAttribute('aria-expanded') === 'true';
-  const button = nav.querySelector('.nav-hamburger button');
-  document.body.style.overflowY = (expanded || isDesktop.matches) ? '' : 'hidden';
-  nav.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-  toggleAllNavSections(navSections, expanded || isDesktop.matches ? 'false' : 'true');
-  button.setAttribute('aria-label', expanded ? 'Open navigation' : 'Close navigation');
-  // enable nav dropdown keyboard accessibility
-  if (navSections) {
-    const navDrops = navSections.querySelectorAll('.nav-drop');
-    if (isDesktop.matches) {
-      navDrops.forEach((drop) => {
-        if (!drop.hasAttribute('tabindex')) {
-          drop.setAttribute('tabindex', 0);
-          drop.addEventListener('focus', focusNavSection);
-        }
-      });
-    } else {
-      navDrops.forEach((drop) => {
-        drop.removeAttribute('tabindex');
-        drop.removeEventListener('focus', focusNavSection);
-      });
+function buildCategory(catLi) {
+  const li = document.createElement('li');
+  li.className = 'va-cat';
+
+  const labelEl = catLi.querySelector(':scope > p, :scope > a');
+  const groupsUl = catLi.querySelector(':scope > ul');
+
+  // A category with no nested groups is just a direct link.
+  if (!groupsUl) {
+    const a = catLi.querySelector(':scope > a');
+    if (a) {
+      li.classList.add('va-cat-link');
+      li.append(a.cloneNode(true));
     }
+    return li;
   }
 
-  // enable menu collapse on escape keypress
-  if (!expanded || isDesktop.matches) {
-    // collapse menu on escape press
-    window.addEventListener('keydown', closeOnEscape);
-    // collapse menu on focus lost
-    nav.addEventListener('focusout', closeOnFocusLost);
-  } else {
-    window.removeEventListener('keydown', closeOnEscape);
-    nav.removeEventListener('focusout', closeOnFocusLost);
+  const catName = (labelEl?.textContent || '').trim();
+  const catHref = labelEl?.tagName === 'A'
+    ? labelEl.getAttribute('href')
+    : (catLi.querySelector(':scope > p > a')?.getAttribute('href') || null);
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'va-cat-toggle';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.textContent = catName;
+  li.append(btn);
+
+  const panel = document.createElement('div');
+  panel.className = 'va-cat-panel';
+
+  if (catHref) {
+    const viewAll = document.createElement('a');
+    viewAll.className = 'va-view-all';
+    viewAll.href = catHref;
+    viewAll.textContent = `View all in ${catName.toLowerCase()}`;
+    panel.append(viewAll);
   }
+
+  const groups = document.createElement('div');
+  groups.className = 'va-groups';
+  [...groupsUl.children].forEach((groupLi) => {
+    const heading = groupLi.querySelector(':scope > p')?.textContent.trim();
+    const linksUl = groupLi.querySelector(':scope > ul');
+    if (!heading || !linksUl) return;
+    const group = document.createElement('div');
+    group.className = 'va-group';
+    const h = document.createElement('h3');
+    h.textContent = heading;
+    group.append(h);
+    group.append(linksUl.cloneNode(true));
+    groups.append(group);
+  });
+  panel.append(groups);
+  li.append(panel);
+
+  btn.addEventListener('click', () => {
+    const open = li.classList.contains('open');
+    li.closest('.va-megapanel')?.querySelectorAll('.va-cat.open').forEach((c) => {
+      c.classList.remove('open');
+      c.querySelector(':scope > button')?.setAttribute('aria-expanded', 'false');
+    });
+    if (!open) {
+      li.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  return li;
 }
 
 /**
- * loads and decorates the header, mainly the nav
- * @param {Element} block The header block element
+ * Build a top-level nav item. A plain <li><a> becomes a link; a
+ * <li><p>label</p><ul>…</ul> becomes a click-triggered megamenu.
  */
-export default async function decorate(block) {
-  // load nav as fragment
-  const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  const fragment = await loadFragment(navPath);
+function buildTopItem(srcLi, nav) {
+  const li = document.createElement('li');
+  li.className = 'va-nav-item';
 
-  // decorate nav DOM
+  const directLink = srcLi.querySelector(':scope > a');
+  const label = srcLi.querySelector(':scope > p');
+  const submenu = srcLi.querySelector(':scope > ul');
+
+  if (directLink && !submenu) {
+    li.classList.add('va-nav-link');
+    li.append(directLink.cloneNode(true));
+    return li;
+  }
+
+  const name = (label?.textContent || directLink?.textContent || '').trim();
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'va-nav-toggle';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.textContent = name;
+  li.append(btn);
+
+  const panel = document.createElement('div');
+  panel.className = 'va-megapanel';
+  const catList = document.createElement('ul');
+  catList.className = 'va-cat-list';
+
+  // Detect two-level (categories contain their own <ul> of groups) vs
+  // single-level (each child is a group with heading + links).
+  const children = submenu ? [...submenu.children] : [];
+  const isTwoLevel = children.some((c) => {
+    const inner = c.querySelector(':scope > ul');
+    return inner && inner.querySelector(':scope > li > ul');
+  });
+
+  if (isTwoLevel) {
+    children.forEach((catLi) => catList.append(buildCategory(catLi)));
+    panel.classList.add('va-megapanel-two-level');
+    panel.append(catList);
+  } else {
+    panel.classList.add('va-megapanel-single');
+    const groups = document.createElement('div');
+    groups.className = 'va-groups';
+    children.forEach((groupLi) => {
+      const heading = groupLi.querySelector(':scope > p')?.textContent.trim();
+      const linksUl = groupLi.querySelector(':scope > ul');
+      if (!heading || !linksUl) return;
+      const group = document.createElement('div');
+      group.className = 'va-group';
+      const h = document.createElement('h3');
+      h.textContent = heading;
+      group.append(h);
+      group.append(linksUl.cloneNode(true));
+      groups.append(group);
+    });
+    panel.append(groups);
+  }
+
+  li.append(panel);
+
+  btn.addEventListener('click', () => {
+    const open = li.classList.contains('open');
+    closeAllMenus(nav);
+    if (!open) {
+      li.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      const firstCat = panel.querySelector('.va-cat .va-cat-toggle');
+      if (firstCat && !panel.querySelector('.va-cat.open')) firstCat.click();
+    }
+  });
+
+  return li;
+}
+
+export default async function decorate(block) {
+  const frag = await fetchNav();
   block.textContent = '';
+  if (!frag) return;
+
+  const sections = [...frag.children].filter((c) => c.tagName === 'DIV');
+  const [brandSection, utilitySection, navSection] = sections;
+
   const nav = document.createElement('nav');
   nav.id = 'nav';
-  while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
+  nav.setAttribute('aria-label', 'Main navigation');
 
-  const classes = ['brand', 'sections', 'tools'];
-  classes.forEach((c, i) => {
-    const section = nav.children[i];
-    if (section) section.classList.add(`nav-${c}`);
+  // --- Utility / gov banner bar (top) ---
+  if (utilitySection) {
+    const bar = document.createElement('div');
+    bar.className = 'va-utility-bar';
+    const inner = document.createElement('div');
+    inner.className = 'va-utility-inner';
+    const paras = utilitySection.querySelectorAll(':scope > p');
+    if (paras[0]) {
+      const notice = document.createElement('div');
+      notice.className = 'va-gov-notice';
+      notice.append(...paras[0].cloneNode(true).childNodes);
+      inner.append(notice);
+    }
+    if (paras[1]) {
+      const a = paras[1].querySelector('a');
+      const c = document.createElement('a');
+      c.className = 'va-crisis-line';
+      c.href = a ? a.getAttribute('href') : '#';
+      c.textContent = paras[1].textContent.trim();
+      inner.append(c);
+    }
+    bar.append(inner);
+    nav.append(bar);
+  }
+
+  // --- Brand bar (logo + utility links + search) ---
+  const brandBar = document.createElement('div');
+  brandBar.className = 'va-brand-bar';
+  const brandInner = document.createElement('div');
+  brandInner.className = 'va-brand-inner';
+
+  if (brandSection) {
+    const logoLink = document.createElement('a');
+    logoLink.className = 'va-logo';
+    const srcLink = brandSection.querySelector('p > a');
+    logoLink.href = srcLink ? srcLink.getAttribute('href') : '/';
+    const img = brandSection.querySelector('img');
+    if (img) logoLink.append(img.cloneNode(true));
+    logoLink.setAttribute('aria-label', img ? img.getAttribute('alt') : 'VA.gov home');
+    brandInner.append(logoLink);
+  }
+
+  const tools = document.createElement('div');
+  tools.className = 'va-tools';
+
+  const searchBtn = document.createElement('button');
+  searchBtn.type = 'button';
+  searchBtn.className = 'va-search-toggle';
+  searchBtn.setAttribute('aria-expanded', 'false');
+  searchBtn.textContent = 'Search';
+  tools.append(searchBtn);
+
+  if (utilitySection) {
+    const utilLinks = utilitySection.querySelector('ul');
+    if (utilLinks) {
+      utilLinks.querySelectorAll('a').forEach((a) => {
+        const link = a.cloneNode(true);
+        link.classList.add('va-tool-link');
+        tools.append(link);
+      });
+    }
+  }
+  brandInner.append(tools);
+
+  // search panel (built in JS, not in the fragment)
+  const searchPanel = document.createElement('form');
+  searchPanel.className = 'va-search-panel';
+  searchPanel.setAttribute('role', 'search');
+  searchPanel.action = 'https://search.va.gov/search';
+  searchPanel.hidden = true;
+  const searchLabel = document.createElement('label');
+  searchLabel.setAttribute('for', 'va-search-input');
+  searchLabel.textContent = 'Search';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.id = 'va-search-input';
+  searchInput.name = 'query';
+  searchInput.placeholder = 'Search';
+  const searchSubmit = document.createElement('button');
+  searchSubmit.type = 'submit';
+  searchSubmit.textContent = 'Search';
+  searchPanel.append(searchLabel, searchInput, searchSubmit);
+  searchBtn.addEventListener('click', () => {
+    const open = !searchPanel.hidden;
+    searchPanel.hidden = open;
+    searchBtn.setAttribute('aria-expanded', String(!open));
+    if (!open) searchInput.focus();
   });
 
-  const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
-  if (brandLink) {
-    brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
+  brandBar.append(brandInner);
+  brandBar.append(searchPanel);
+  nav.append(brandBar);
+
+  // --- Primary nav (megamenu) ---
+  const navBar = document.createElement('div');
+  navBar.className = 'va-nav-bar';
+  const navInner = document.createElement('div');
+  navInner.className = 'va-nav-inner';
+
+  const hamburger = document.createElement('button');
+  hamburger.type = 'button';
+  hamburger.className = 'va-hamburger';
+  hamburger.setAttribute('aria-label', 'Menu');
+  hamburger.setAttribute('aria-expanded', 'false');
+  hamburger.innerHTML = '<span class="va-hamburger-icon"></span>';
+
+  const navList = document.createElement('ul');
+  navList.className = 'va-nav-list';
+
+  if (navSection) {
+    const topUl = navSection.querySelector(':scope > ul');
+    if (topUl) {
+      [...topUl.children].forEach((srcLi) => navList.append(buildTopItem(srcLi, nav)));
+    }
   }
 
-  const navSections = nav.querySelector('.nav-sections');
-  if (navSections) {
-    navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-      navSection.addEventListener('click', () => {
-        if (isDesktop.matches) {
-          const expanded = navSection.getAttribute('aria-expanded') === 'true';
-          toggleAllNavSections(navSections);
-          navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        }
-      });
-    });
-  }
+  hamburger.addEventListener('click', () => {
+    const open = nav.classList.toggle('va-menu-open');
+    hamburger.setAttribute('aria-expanded', String(open));
+    if (!open) closeAllMenus(nav);
+  });
 
-  // hamburger for mobile
-  const hamburger = document.createElement('div');
-  hamburger.classList.add('nav-hamburger');
-  hamburger.innerHTML = `<button type="button" aria-controls="nav" aria-label="Open navigation">
-      <span class="nav-hamburger-icon"></span>
-    </button>`;
-  hamburger.addEventListener('click', () => toggleMenu(nav, navSections));
-  nav.prepend(hamburger);
-  nav.setAttribute('aria-expanded', 'false');
-  // prevent mobile nav behavior on window resize
-  toggleMenu(nav, navSections, isDesktop.matches);
-  isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
+  navInner.append(hamburger);
+  navInner.append(navList);
+  navBar.append(navInner);
+  nav.append(navBar);
 
-  const navWrapper = document.createElement('div');
-  navWrapper.className = 'nav-wrapper';
-  navWrapper.append(nav);
-  block.append(navWrapper);
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target)) {
+      closeAllMenus(nav);
+      searchPanel.hidden = true;
+      searchBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllMenus(nav);
+      searchPanel.hidden = true;
+      searchBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  isDesktop.addEventListener('change', () => {
+    closeAllMenus(nav);
+    nav.classList.remove('va-menu-open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    searchPanel.hidden = true;
+    searchBtn.setAttribute('aria-expanded', 'false');
+  });
+
+  block.append(nav);
 }

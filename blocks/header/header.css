@@ -1,272 +1,621 @@
-/* header and nav layout */
+/* VA.gov header — mobile-first. Utility bar + brand/search bar + megamenu.
+   Colors extracted from https://www.va.gov/ (brand.css tokens where they match).
+   Brand + primary-nav bars are navy (--va-primary-darker #162e51). */
+
+header .header-wrapper,
 header .nav-wrapper {
-  background-color: var(--background-color);
-  width: 100%;
-  z-index: 2;
-  position: fixed;
+  background-color: var(--va-primary-darker, #162e51);
 }
 
-header nav {
-  box-sizing: border-box;
-  display: grid;
-  grid-template:
-    'hamburger brand tools' var(--nav-height)
-    'sections sections sections' 1fr / auto 1fr auto;
-  align-items: center;
-  gap: 0 24px;
-  margin: auto;
-  max-width: 1248px;
-  height: var(--nav-height);
-  padding: 0 24px;
+header nav#nav {
+  position: relative;
+  z-index: 200;
+  background-color: var(--va-primary-darker, #162e51);
   font-family: var(--body-font-family);
 }
 
-header nav[aria-expanded='true'] {
-  grid-template:
-    'hamburger brand' var(--nav-height)
-    'sections sections' 1fr
-    'tools tools' var(--nav-height) / auto 1fr;
-  overflow-y: auto;
-  min-height: 100dvh;
+/* ---------- Utility / gov banner bar (top light-grey strip) ---------- */
+.va-utility-bar {
+  background-color: #f1f1f1;
+  font-size: 12px;
+  line-height: 18px;
 }
 
-@media (width >= 900px) {
-  header .nav-wrapper {
-    position: relative;
-  }
-
-  header nav {
-    display: flex;
-    justify-content: space-between;
-    gap: 0 32px;
-    max-width: 1264px;
-    padding: 0 32px;
-  }
-
-  header nav[aria-expanded='true'] {
-    min-height: 0;
-    overflow: visible;
-  }
+.va-utility-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
 }
 
-header nav p {
-  margin: 0;
-  line-height: 1;
-}
-
-header nav a:any-link {
-  color: currentcolor;
-}
-
-/* hamburger */
-header nav .nav-hamburger {
-  grid-area: hamburger;
-  height: 22px;
+.va-gov-notice {
   display: flex;
   align-items: center;
+  gap: 6px;
+  padding: 2px 16px;
+  color: #1b1b1b;
 }
 
-header nav .nav-hamburger button {
-  height: 22px;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background-color: var(--background-color);
-  color: inherit;
-  overflow: initial;
-  text-overflow: initial;
-  white-space: initial;
-}
-
-header nav .nav-hamburger-icon,
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  box-sizing: border-box;
-  display: block;
-  position: relative;
-  width: 20px;
-}
-
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  content: '';
-  position: absolute;
-  background: currentcolor;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon,
-header nav[aria-expanded='false'] .nav-hamburger-icon::before,
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  height: 2px;
-  border-radius: 2px;
-  background: currentcolor;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon::before {
-  top: -6px;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  top: 6px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon {
-  height: 22px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon::before,
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: 3px;
-  left: 1px;
-  transform: rotate(45deg);
-  transform-origin: 2px 1px;
-  width: 24px;
-  height: 2px;
-  border-radius: 2px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: unset;
-  bottom: 3px;
-  transform: rotate(-45deg);
-}
-
-@media (width >= 900px) {
-  header nav .nav-hamburger {
-    display: none;
-    visibility: hidden;
-  }
-}
-
-/* brand */
-header .nav-brand {
-  grid-area: brand;
-  flex-basis: 128px;
-  font-size: var(--heading-font-size-s);
-  font-weight: 700;
-  line-height: 1;
-}
-
-header nav .nav-brand img {
-  width: 128px;
+.va-gov-notice img {
+  width: 16px;
   height: auto;
 }
 
-/* sections */
-header nav .nav-sections {
-  grid-area: sections;
-  flex: 1 1 auto;
+/* Veterans Crisis Line — full-width dark-red bar on mobile */
+.va-crisis-line:any-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  background-color: #8b0a03;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.va-crisis-line:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ---------- Brand bar (navy: logo + utility links + search) ---------- */
+.va-brand-bar {
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+.va-brand-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 10px 12px;
+}
+
+.va-logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.va-logo img {
+  height: 32px;
+  width: auto;
+}
+
+.va-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.va-tool-link:any-link {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.va-tool-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.va-search-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.va-search-toggle:hover {
+  text-decoration: underline;
+}
+
+.va-search-panel {
+  display: flex;
+  gap: 8px;
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 0 16px 12px;
+}
+
+.va-search-panel[hidden] {
   display: none;
-  visibility: hidden;
 }
 
-header nav[aria-expanded='true'] .nav-sections {
+.va-search-panel label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.va-search-panel input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #565c65;
+  border-radius: 0;
+  background-color: #fff;
+}
+
+.va-search-panel button {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--va-primary);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- Primary nav bar (navy) ---------- */
+.va-nav-bar {
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+.va-nav-inner {
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Hamburger (mobile) */
+.va-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.va-hamburger-icon,
+.va-hamburger-icon::before,
+.va-hamburger-icon::after {
   display: block;
-  visibility: visible;
-  align-self: start;
+  width: 24px;
+  height: 2px;
+  background-color: #fff;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-header nav .nav-sections ul {
+.va-hamburger-icon {
+  position: relative;
+}
+
+.va-hamburger-icon::before,
+.va-hamburger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.va-hamburger-icon::before { top: -7px; }
+.va-hamburger-icon::after { top: 7px; }
+
+/* Hamburger morphs to a cross when the menu is open */
+.va-menu-open .va-hamburger-icon { background-color: transparent; }
+.va-menu-open .va-hamburger-icon::before { transform: translateY(7px) rotate(45deg); }
+.va-menu-open .va-hamburger-icon::after { transform: translateY(-7px) rotate(-45deg); }
+
+/* Nav list — mobile: collapsible drawer over a light-grey panel */
+.va-nav-list {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   list-style: none;
-  padding-left: 0;
-  font-size: var(--body-font-size-s);
 }
 
-header nav .nav-sections ul > li {
-  font-weight: 500;
+.va-menu-open .va-nav-list {
+  display: flex;
+  position: relative;
+  z-index: 200;
+  padding: 8px 0;
+  background-color: #f0f0f0;
 }
 
-header nav .nav-sections ul > li > ul {
-  margin-top: 0;
+/* keep the whole header above page content while the drawer is open */
+.va-menu-open {
+  position: relative;
+  z-index: 200;
 }
 
-header nav .nav-sections ul > li > ul > li {
+/* Mobile: each top item is a navy bar with white label, 8px gap */
+.va-nav-item {
+  width: 100%;
+  margin-bottom: 8px;
+  background-color: var(--va-primary-dark, #1a4480);
+}
+
+.va-nav-item > a:any-link,
+.va-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.va-nav-item > a:hover,
+.va-nav-toggle:hover {
+  text-decoration: underline;
+}
+
+/* plus/minus affordance on mobile accordion toggles */
+.va-nav-toggle::after {
+  content: '+';
+  font-size: 22px;
   font-weight: 400;
+  line-height: 1;
 }
 
+.va-nav-item.open > .va-nav-toggle::after {
+  content: '\2013';
+}
+
+/* Megapanel — mobile: expands in place on a white sheet */
+.va-megapanel {
+  display: none;
+  padding: 8px 16px 12px;
+  background-color: #fff;
+}
+
+.va-nav-item.open > .va-megapanel {
+  display: block;
+}
+
+.va-cat-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.va-cat {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.va-cat-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+  border: 0;
+  background: none;
+  color: var(--link-color);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.va-cat-toggle::after {
+  content: '\203A';
+  font-size: 20px;
+  color: var(--link-color);
+}
+
+.va-cat-panel {
+  display: none;
+  padding-bottom: 8px;
+}
+
+.va-cat.open > .va-cat-panel {
+  display: block;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.va-cat-link a {
+  display: block;
+  padding: 12px 0;
+  color: var(--link-color);
+  font-size: 17px;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.va-view-all {
+  display: inline-block;
+  margin: 8px 0;
+  color: var(--link-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.va-view-all:hover {
+  text-decoration: underline;
+}
+
+.va-group h3 {
+  margin: 4px 0 8px;
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000;
+  text-transform: none;
+}
+
+.va-group ul {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.va-group li {
+  margin: 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.va-group a {
+  display: block;
+  padding: 5px 0;
+  color: var(--link-color);
+  font-size: 17px;
+  text-decoration: none;
+}
+
+.va-group a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Desktop (>= 900px) ---------- */
 @media (width >= 900px) {
-  header nav .nav-sections {
-    display: block;
-    visibility: visible;
-    white-space: nowrap;
+  .va-utility-inner {
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  header nav[aria-expanded='true'] .nav-sections {
-    align-self: unset;
+  .va-gov-notice {
+    padding: 2px 0;
   }
 
-  header nav .nav-sections .nav-drop {
-    position: relative;
-    padding-right: 16px;
-    cursor: pointer;
+  /* Crisis line: compact dark-red button on the right */
+  .va-crisis-line {
+    display: inline-flex;
+    margin: 2px 0;
+    padding: 4px 16px;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgb(27 27 27 / 40%);
   }
 
-  header nav .nav-sections .nav-drop::after {
-    content: '';
-    display: inline-block;
-    position: absolute;
-    top: 0.5em;
-    right: 2px;
-    transform: rotate(135deg);
-    width: 6px;
-    height: 6px;
-    border: 2px solid currentcolor;
-    border-radius: 0 1px 0 0;
-    border-width: 2px 2px 0 0;
+  .va-brand-inner {
+    gap: 16px;
+    padding: 12px 16px;
   }
 
-  header nav .nav-sections .nav-drop[aria-expanded='true']::after {
-    top: unset;
-    bottom: 0.5em;
-    transform: rotate(315deg);
+  .va-logo img {
+    height: 52px;
   }
 
-  header nav .nav-sections ul {
-    display: flex;
-    gap: 24px;
-    margin: 0;
+  .va-tools {
+    gap: 16px;
+    align-items: center;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li {
-    flex: 0 1 auto;
-    position: relative;
+  .va-tool-link:any-link {
+    font-size: 16px;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li > ul {
+  .va-search-toggle {
+    padding: 4px 8px;
+    font-size: 16px;
+  }
+
+  .va-hamburger {
     display: none;
+  }
+
+  .va-nav-inner {
+    display: flex;
+    align-items: stretch;
+    padding: 0 16px;
+  }
+
+  .va-nav-list {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    background-color: transparent;
+  }
+
+  .va-menu-open .va-nav-list {
+    padding: 0;
+    background-color: transparent;
+  }
+
+  .va-nav-item {
+    width: auto;
+    margin-bottom: 0;
+    background-color: transparent;
+    position: static;
+  }
+
+  .va-nav-item > a,
+  .va-nav-toggle {
+    display: inline-flex;
+    width: auto;
+    padding: 16px;
+    font-size: 17px;
+    line-height: 1;
+    color: #fff;
+  }
+
+  /* remove mobile accordion +/- glyph on desktop */
+  .va-nav-toggle::after {
+    content: '\25BE';
+    margin-left: 8px;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .va-nav-item.open > .va-nav-toggle::after {
+    content: '\25B4';
+  }
+
+  .va-nav-item > a:hover,
+  .va-nav-toggle:hover {
+    background-color: rgb(255 255 255 / 10%);
+    text-decoration: none;
+  }
+
+  /* open top item becomes a white tab that joins the panel below */
+  .va-nav-toggle[aria-expanded="true"] {
+    background-color: #fff;
+    color: #1b1b1b;
+  }
+
+  .va-nav-toggle[aria-expanded="true"]:hover {
+    background-color: #fff;
+  }
+
+  /* Megapanel — desktop: full-width white dropdown below the nav */
+  .va-nav-bar {
     position: relative;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
-    display: block;
+  .va-megapanel {
     position: absolute;
-    left: -24px;
-    width: 200px;
-    top: 150%;
-    padding: 16px;
-    background-color: var(--light-color);
-    white-space: initial;
+    left: 50%;
+    z-index: 100;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--content-max-width, 1024px);
+    padding: 0 0 16px;
+    background-color: #fff;
+    box-shadow: 0 7px 25px -11px rgb(0 0 0 / 100%);
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li > ul::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 16px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--light-color);
+  /* two-level: left rail of category buttons + right link columns */
+  .va-megapanel-two-level {
+    display: none;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
+  .va-nav-item.open > .va-megapanel-two-level {
+    display: flex;
+    align-items: stretch;
+    min-height: 340px;
+  }
+
+  .va-megapanel-two-level .va-cat-list {
+    flex: 0 0 272px;
     padding: 8px 0;
   }
+
+  .va-megapanel-two-level .va-cat {
+    border-bottom: 0;
+  }
+
+  .va-megapanel-two-level .va-cat-toggle {
+    padding: 8px 12px 8px 16px;
+    margin-left: 8px;
+    border-bottom: 1px solid transparent;
+    font-weight: 400;
+    color: var(--link-color);
+  }
+
+  .va-megapanel-two-level .va-cat.open > .va-cat-toggle {
+    background-color: #f0f0f0;
+    box-shadow: inset 4px 0 0 #8a7237;
+    border-bottom-color: #e6e6e2;
+    color: #3d4551;
+    font-weight: 700;
+  }
+
+  /* second-level panel appears to the right of the rail */
+  .va-megapanel-two-level .va-cat-panel {
+    display: none;
+    position: absolute;
+    left: 272px;
+    top: 0;
+    right: 0;
+    padding: 0 24px 24px;
+  }
+
+  .va-megapanel-two-level .va-cat.open > .va-cat-panel {
+    display: block;
+  }
+
+  .va-megapanel-two-level .va-view-all {
+    display: inline-block;
+    margin: 0;
+    padding: 20px 25px 20px 0;
+    border-bottom: 1px solid #d0d0d0;
+  }
+
+  /* single-level (About VA): grouped columns directly */
+  .va-megapanel-single {
+    display: none;
+  }
+
+  .va-nav-item.open > .va-megapanel-single {
+    display: block;
+    padding: 24px 0;
+  }
+
+  .va-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 48px;
+    padding-top: 12px;
+  }
+
+  .va-megapanel-single .va-groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: var(--content-max-width, 1024px);
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .va-group ul {
+    margin: 0 0 8px;
+  }
 }
 
-/* tools */
-header nav .nav-tools {
-  grid-area: tools;
+@media (width >= 1200px) {
+  .va-utility-inner,
+  .va-brand-inner,
+  .va-nav-inner,
+  .va-search-panel {
+    max-width: 1200px;
+  }
+
+  .va-megapanel {
+    max-width: 1200px;
+  }
 }

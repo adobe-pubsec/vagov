@@ -1,0 +1,10 @@
+{
+  "variantName": "columns-promo",
+  "baseBlock": "columns",
+  "canonicalModel": "standalone",
+  "visualCharacteristics": "Dark-background two-column promotional band. Image/graphic on one side; on the other an eyebrow, heading, a paragraph with an inline link, and a 'more' link. White text on a dark blue band.",
+  "contentPattern": "One row with two columns: an image column and a text column (eyebrow + heading + paragraph + link).",
+  "usage": "Promotional/news callout pairing a graphic with supporting text on a dark section band.",
+  "options": [],
+  "memberVariantIds": ["columns-promo"]
+}

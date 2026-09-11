@@ -1,0 +1,59 @@
+/* accordion-contact — bordered disclosure panels (heading + link list).
+   Structural/functional only; brand color & type left to the design pass. */
+
+.accordion-contact details {
+  border: 1px solid #dadada;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.accordion-contact details + details {
+  margin-top: -1px;
+}
+
+.accordion-contact details summary {
+  position: relative;
+  padding: 12px 46px 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+}
+
+.accordion-contact details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* chevron affordance, rotates when open */
+.accordion-contact details summary::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid;
+  border-width: 2px 2px 0 0;
+  transform: translateY(-50%) rotate(135deg);
+  transition: transform 0.2s;
+}
+
+.accordion-contact details[open] summary::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.accordion-contact details .accordion-contact-item-body {
+  padding: 0 16px 12px;
+}
+
+.accordion-contact details[open] .accordion-contact-item-body {
+  border-top: 1px solid #dadada;
+}
+
+.accordion-contact .accordion-contact-item-body ul {
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accordion-contact .accordion-contact-item-body li {
+  margin: 0 0 8px;
+}

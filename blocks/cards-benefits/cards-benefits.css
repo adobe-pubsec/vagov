@@ -1,0 +1,42 @@
+/* cards-benefits — icon-led benefit grid (icon + linked heading + description).
+   Structural/layout only; brand color & type left to the design pass. */
+
+.cards-benefits > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px 32px;
+}
+
+.cards-benefits > ul > li {
+  display: block;
+}
+
+.cards-benefits .cards-benefits-card-icon {
+  line-height: 0;
+  margin-bottom: 8px;
+}
+
+.cards-benefits .cards-benefits-card-icon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.cards-benefits .cards-benefits-card-body {
+  margin: 0;
+}
+
+@media (width >= 600px) {
+  .cards-benefits > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .cards-benefits > ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,0 +1,95 @@
+/* columns-promo — image + promo text, two-column news/app promo.
+   The dark blue band and white heading colors come from the section
+   (section-metadata "primary-dark", styled in styles.css), so this file
+   only owns the block's layout and the on-dark text/link treatment.
+   Values extracted from source computed styles (va.gov homepage promo). */
+
+/* Row: stack on mobile, image above text. */
+.columns-promo > div {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.columns-promo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Ensure on-dark body text reads as white; image first on mobile. */
+.columns-promo > div > div {
+  order: 1;
+  color: #fff;
+}
+
+/* Eyebrow — "VA NEWS": body font, small, regular weight (not the global h2). */
+.columns-promo h2 {
+  margin: 0 0 8px;
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #fff;
+}
+
+/* Promo heading — Bitter serif, 32px. */
+.columns-promo h3 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.columns-promo p {
+  margin: 0 0 16px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #fff;
+}
+
+/* Links sit on the dark band: white + underlined. */
+.columns-promo a:any-link {
+  color: #fff;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.columns-promo a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.columns-promo > div > .columns-promo-img-col {
+  order: 0;
+}
+
+@media (width >= 900px) {
+  /* Two columns: image ~1/3, text ~2/3, no gutter (text padding spaces them). */
+  .columns-promo > div {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+
+  .columns-promo > div > div {
+    order: unset;
+  }
+
+  .columns-promo > div > .columns-promo-img-col {
+    flex: 0 0 33.333%;
+    align-self: stretch;
+  }
+
+  .columns-promo > div > .columns-promo-img-col picture,
+  .columns-promo > div > .columns-promo-img-col img {
+    height: 100%;
+  }
+
+  .columns-promo > div > div:not(.columns-promo-img-col) {
+    flex: 1;
+    padding: 48px;
+  }
+}

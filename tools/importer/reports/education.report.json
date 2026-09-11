@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "url": "https://www.va.gov/education/",
+  "path": "education",
+  "timestamp": "2026-09-11T16:33:21.074Z",
+  "title": "VA Education And Training Benefits | Veterans Affairs",
+  "template": "education",
+  "blocks": [
+    "hero-welcome",
+    "cards-benefits",
+    "cards-benefits",
+    "cards-benefits",
+    "cards-benefits",
+    "accordion-contact",
+    "accordion-contact"
+  ]
+}

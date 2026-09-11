@@ -1,0 +1,220 @@
+{
+  "metadata": {
+    "projectType": "da"
+  },
+  "templates": [
+    {
+      "name": "home",
+      "urls": [
+        "https://www.va.gov/"
+      ],
+      "representativeUrl": "https://www.va.gov/",
+      "description": "To be named in naming step",
+      "blocks": [
+        {
+          "name": "hero-welcome",
+          "instances": [
+            ".homepage-hero__wrapper"
+          ]
+        },
+        {
+          "name": "columns-search",
+          "instances": [
+            ".template-module__JEykya__wrapper"
+          ]
+        },
+        {
+          "name": "columns-promo",
+          "instances": [
+            "#content > div.vads-u-background-color--primary-dark"
+          ]
+        },
+        {
+          "name": "cards-benefits",
+          "instances": [
+            ".vads-grid-row.vads-grid-gap-3"
+          ]
+        },
+        {
+          "name": "form",
+          "instances": [
+            ".homepage-email-input"
+          ]
+        }
+      ],
+      "sections": [
+        {
+          "id": "rc4c1",
+          "name": "hero",
+          "selector": [
+            ".homepage-hero__wrapper"
+          ],
+          "style": null,
+          "blocks": [
+            "hero-welcome"
+          ],
+          "defaultContent": []
+        },
+        {
+          "id": "rc4c2",
+          "name": "search-top-pages",
+          "selector": [
+            ".template-module__JEykya__wrapper"
+          ],
+          "style": null,
+          "blocks": [
+            "columns-search"
+          ],
+          "defaultContent": []
+        },
+        {
+          "id": "rc4c3",
+          "name": "news-app-promo",
+          "selector": [
+            "#content > div.vads-u-background-color--primary-dark"
+          ],
+          "style": "primary-dark",
+          "blocks": [
+            "columns-promo"
+          ],
+          "defaultContent": []
+        },
+        {
+          "id": "rc4c4",
+          "name": "explore-benefits",
+          "selector": [
+            "#content > section.vads-grid-container.vads-u-padding--2p5"
+          ],
+          "style": null,
+          "blocks": [
+            "cards-benefits"
+          ],
+          "defaultContent": [
+            "#content > section.vads-grid-container.vads-u-padding--2p5 > div:nth-of-type(1)"
+          ]
+        },
+        {
+          "id": "rc4c5",
+          "name": "feedback",
+          "selector": [
+            "#content > div.vads-grid-container"
+          ],
+          "style": null,
+          "blocks": [],
+          "defaultContent": [
+            "#content > div.vads-grid-container"
+          ]
+        },
+        {
+          "id": "rc4c6",
+          "name": "email-signup",
+          "selector": [
+            ".homepage-email-update-wrapper"
+          ],
+          "style": "primary-alt-lightest",
+          "blocks": [
+            "form"
+          ],
+          "defaultContent": [
+            "#vets-banner-1"
+          ]
+        }
+      ],
+      "urlPattern": "/"
+    },
+    {
+      "name": "education",
+      "urls": [
+        "https://www.va.gov/education/"
+      ],
+      "representativeUrl": "https://www.va.gov/education/",
+      "description": "VA education benefits hub landing page: hero intro, on-this-page anchors, grouped benefit link sections, a grey 'other benefits' box, and a sidebar contact accordion.",
+      "urlPattern": "/*",
+      "blocks": [
+        {
+          "name": "hero-welcome",
+          "instances": ["#content article > div:nth-of-type(1)"]
+        },
+        {
+          "name": "cards-benefits",
+          "instances": [
+            "#content article > div:nth-of-type(2)",
+            "#content article > div:nth-of-type(3)",
+            "#content article > div:nth-of-type(4)",
+            "#content article > section"
+          ]
+        },
+        {
+          "name": "accordion-contact",
+          "instances": ["#hub-rail va-accordion", "va-accordion"]
+        }
+      ],
+      "sections": [
+        {
+          "id": "s1",
+          "name": "hero-intro",
+          "selector": ["#content article > div:nth-of-type(1)"],
+          "style": null,
+          "blocks": ["hero-welcome"],
+          "defaultContent": []
+        },
+        {
+          "id": "s2",
+          "name": "on-this-page",
+          "selector": ["#content article > va-on-this-page"],
+          "style": null,
+          "blocks": [],
+          "defaultContent": ["#content article > va-on-this-page"]
+        },
+        {
+          "id": "s3",
+          "name": "get-gi-bill-benefits",
+          "selector": ["#content article > div:nth-of-type(2)"],
+          "style": null,
+          "blocks": ["cards-benefits"],
+          "defaultContent": ["#content article > div:nth-of-type(2) > h2"]
+        },
+        {
+          "id": "s4",
+          "name": "manage-benefits",
+          "selector": ["#content article > div:nth-of-type(3)"],
+          "style": null,
+          "blocks": ["cards-benefits"],
+          "defaultContent": ["#content article > div:nth-of-type(3) > h2"]
+        },
+        {
+          "id": "s5",
+          "name": "more-information",
+          "selector": ["#content article > div:nth-of-type(4)"],
+          "style": null,
+          "blocks": ["cards-benefits"],
+          "defaultContent": ["#content article > div:nth-of-type(4) > h2"]
+        },
+        {
+          "id": "s6",
+          "name": "other-va-benefits",
+          "selector": ["#content article > section"],
+          "style": "grey",
+          "blocks": ["cards-benefits"],
+          "defaultContent": ["#content article > section > h2"]
+        },
+        {
+          "id": "s7",
+          "name": "ask-questions-contact",
+          "selector": ["#hub-rail va-accordion", "va-accordion"],
+          "style": null,
+          "blocks": ["accordion-contact"],
+          "defaultContent": []
+        },
+        {
+          "id": "s8",
+          "name": "veteran-portraits-band",
+          "selector": ["#content > div:nth-of-type(2)"],
+          "style": null,
+          "blocks": [],
+          "defaultContent": ["#content > div:nth-of-type(2)"]
+        }
+      ]
+    }
+  ]
+}

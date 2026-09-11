@@ -1,0 +1,18 @@
+{
+  "variantName": "hero-welcome",
+  "baseBlock": "hero",
+  "canonicalModel": "standalone",
+  "visualCharacteristics": "Full-bleed dark navy-blue gradient banner with white text. Left region has a welcome eyebrow, large serif headline, intro paragraph and a primary action link. Right region is an optional light card with account-creation copy, a button and a secondary link.",
+  "contentPattern": "Row 1: eyebrow + headline + intro paragraph + CTA link. Optional Row 2: card copy + button + secondary link.",
+  "usage": {
+    "pagesUsing": [
+      "/education/index"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-09-11T16:23:13.650Z"
+  },
+  "options": [],
+  "memberVariantIds": [
+    "hero-welcome"
+  ]
+}
