@@ -125,23 +125,21 @@ function decorateButtons(main) {
       if (new URL(a.href).href === new URL(text, window.location).href) return;
     } catch { /* continue */ }
 
-    // require authored formatting for buttonization
+    // Only bolded links become buttons. A bold link is primary; adding italic
+    // (bold + italic) selects the secondary variant.
     const strong = a.closest('strong');
+    if (!strong) return;
     const em = a.closest('em');
-    if (!strong && !em) return;
 
     p.className = 'button-wrapper';
     a.className = 'button';
-    if (strong && em) { // high-impact call-to-action
-      a.classList.add('accent');
+    if (em) {
+      a.classList.add('secondary');
       const outer = strong.contains(em) ? strong : em;
       outer.replaceWith(a);
-    } else if (strong) {
+    } else {
       a.classList.add('primary');
       strong.replaceWith(a);
-    } else {
-      a.classList.add('secondary');
-      em.replaceWith(a);
     }
   });
 }

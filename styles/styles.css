@@ -348,3 +348,8 @@ main .section[data-padding="none"] {
     }
   }
 }
+
+main .section[data-padding="medium"] {
+  padding: 40px 0;
+}
+
