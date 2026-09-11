@@ -25,3 +25,77 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
+
+/* ---------- icons variant ---------- */
+.cards.icons > ul {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 40px 48px;
+}
+
+.cards.icons > ul > li {
+  border: 0;
+  background: none;
+}
+
+.cards.icons .cards-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.cards.icons .cards-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+.cards.icons .cards-icon .icon,
+.cards.icons .cards-icon picture {
+  display: flex;
+  width: 28px;
+  height: 28px;
+}
+
+/* monochrome glyph rendered white inside the coloured circle */
+.cards.icons .cards-icon img {
+  width: 28px;
+  height: 28px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+/* cycle a VA-style palette so the circles read as varied like the design */
+.cards.icons > ul > li:nth-child(9n + 1) .cards-icon { background-color: #112f54; }
+.cards.icons > ul > li:nth-child(9n + 2) .cards-icon { background-color: #9b2915; }
+.cards.icons > ul > li:nth-child(9n + 3) .cards-icon { background-color: #044076; }
+.cards.icons > ul > li:nth-child(9n + 4) .cards-icon { background-color: #a8500a; }
+.cards.icons > ul > li:nth-child(9n + 5) .cards-icon { background-color: #4c8b2b; }
+.cards.icons > ul > li:nth-child(9n + 6) .cards-icon { background-color: #7a5a2e; }
+.cards.icons > ul > li:nth-child(9n + 7) .cards-icon { background-color: #6f7c1f; }
+.cards.icons > ul > li:nth-child(9n + 8) .cards-icon { background-color: #0071bb; }
+.cards.icons > ul > li:nth-child(9n + 9) .cards-icon { background-color: #5a6b2b; }
+
+.cards.icons .cards-card-header :is(h1, h2, h3, h4, h5, h6, p) {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.cards.icons .cards-card-header a:any-link {
+  text-decoration: underline;
+}
+
+.cards.icons .cards-card-body {
+  margin: 0;
+}
+
+.cards.icons .cards-card-body p {
+  margin: 0 0 0.5em;
+}

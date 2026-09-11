@@ -259,7 +259,7 @@ main img {
 
 /* sections */
 main > .section {
-  margin: 40px 0;
+  margin: 0;
 }
 
 main > .section > div {
@@ -330,4 +330,21 @@ main .section.primary-alt-lightest {
   background-color: var(--va-primary-alt-lightest);
   margin: 0;
   padding: 40px 0;
+}
+
+main .section.white-light-split {
+  background: linear-gradient(to right,white 0 50%,var(--va-primary-alt-lightest)50% 100%);
+}
+
+main .section[data-padding="none"] {
+  padding: 0;
+
+  p:has(picture) {
+    padding: 0;
+    margin: 0;
+
+    img {
+      display: block;
+    }
+  }
 }
