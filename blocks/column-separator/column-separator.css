@@ -1,0 +1,5 @@
+/* Structural marker: hidden on the live page. When the section has item-widths
+   it is removed in scripts.js; this hides any stray separator that remains. */
+.section > div:has(> .column-separator.block) {
+  display: none;
+}

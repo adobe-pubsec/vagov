@@ -278,6 +278,28 @@ main > .section:first-of-type {
   }
 }
 
+/* section column layout (item-widths + column-separator) */
+main > .section > .section-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+main > .section > .section-columns > .section-column {
+  min-width: 0;
+}
+
+@media (width >= 900px) {
+  main > .section > .section-columns {
+    flex-direction: row;
+    gap: 32px;
+  }
+
+  main > .section > .section-columns > .section-column {
+    flex: 0 1 var(--section-column-width, auto);
+  }
+}
+
 /* section metadata */
 main .section.light,
 main .section.highlight {

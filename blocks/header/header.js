@@ -117,10 +117,11 @@ function buildTopItem(srcLi, nav) {
   const li = document.createElement('li');
   li.className = 'va-nav-item';
 
-  const directLink = srcLi.querySelector(':scope > a');
   const label = srcLi.querySelector(':scope > p');
   const submenu = srcLi.querySelector(':scope > ul');
+  const directLink = srcLi.querySelector(':scope > a, :scope > p > a');
 
+  // No submenu → plain link, no toggle button and no dropdown arrow.
   if (directLink && !submenu) {
     li.classList.add('va-nav-link');
     li.append(directLink.cloneNode(true));
@@ -217,7 +218,33 @@ export default async function decorate(block) {
       const c = document.createElement('a');
       c.className = 'va-crisis-line';
       c.href = a ? a.getAttribute('href') : '#';
-      c.textContent = paras[1].textContent.trim();
+
+      const crisisIcon = document.createElement('img');
+      crisisIcon.className = 'va-crisis-icon';
+      crisisIcon.src = '/icons/crisis-icon.svg';
+      crisisIcon.alt = '';
+      crisisIcon.setAttribute('aria-hidden', 'true');
+
+      const text = document.createElement('span');
+      text.className = 'va-crisis-text';
+      const label = paras[1].textContent.trim();
+      const phrase = 'Veterans Crisis Line';
+      const idx = label.indexOf(phrase);
+      if (idx !== -1) {
+        const strong = document.createElement('strong');
+        strong.textContent = phrase;
+        text.append(label.slice(0, idx), strong, label.slice(idx + phrase.length));
+      } else {
+        text.textContent = label;
+      }
+
+      const arrowIcon = document.createElement('img');
+      arrowIcon.className = 'va-crisis-arrow';
+      arrowIcon.src = '/icons/arrow.svg';
+      arrowIcon.alt = '';
+      arrowIcon.setAttribute('aria-hidden', 'true');
+
+      c.append(crisisIcon, text, arrowIcon);
       inner.append(c);
     }
     bar.append(inner);
@@ -257,6 +284,8 @@ export default async function decorate(block) {
       utilLinks.querySelectorAll('a').forEach((a) => {
         const link = a.cloneNode(true);
         link.classList.add('va-tool-link');
+        // A bolded link (author wraps it in strong/b) renders as a button.
+        if (a.closest('strong, b')) link.classList.add('va-tool-button');
         tools.append(link);
       });
     }
@@ -308,10 +337,18 @@ export default async function decorate(block) {
   const navList = document.createElement('ul');
   navList.className = 'va-nav-list';
 
+  // A secondary top-level <ul> (e.g. My VA / My HealtheVet) sits inline with
+  // the primary nav but is pushed to the far right on desktop.
+  const secondaryList = document.createElement('ul');
+  secondaryList.className = 'va-nav-list va-nav-list-secondary';
+
   if (navSection) {
-    const topUl = navSection.querySelector(':scope > ul');
+    const [topUl, secondaryUl] = navSection.querySelectorAll(':scope > ul');
     if (topUl) {
       [...topUl.children].forEach((srcLi) => navList.append(buildTopItem(srcLi, nav)));
+    }
+    if (secondaryUl) {
+      [...secondaryUl.children].forEach((srcLi) => secondaryList.append(buildTopItem(srcLi, nav)));
     }
   }
 
@@ -323,6 +360,7 @@ export default async function decorate(block) {
 
   navInner.append(hamburger);
   navInner.append(navList);
+  if (secondaryList.children.length) navInner.append(secondaryList);
   navBar.append(navInner);
   nav.append(navBar);
 

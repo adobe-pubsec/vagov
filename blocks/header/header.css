@@ -48,22 +48,43 @@ header nav#nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 12px;
+  gap: 10px;
+  padding: 6px 12px;
   background-color: #8b0a03;
   color: #fff;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 400;
   text-decoration: none;
 }
 
 .va-crisis-line:hover {
   color: #fff;
+}
+
+.va-crisis-line:hover .va-crisis-text {
   text-decoration: underline;
+}
+
+.va-crisis-text strong {
+  font-weight: 700;
+}
+
+.va-crisis-icon {
+  flex-shrink: 0;
+  width: auto;
+  height: 22px;
+}
+
+.va-crisis-arrow {
+  flex-shrink: 0;
+  width: auto;
+  height: 13px;
 }
 
 /* ---------- Brand bar (navy: logo + utility links + search) ---------- */
 .va-brand-bar {
   background-color: var(--va-primary-darker, #162e51);
+  padding-top: 20px;
 }
 
 .va-brand-inner {
@@ -104,6 +125,21 @@ header nav#nav {
 .va-tool-link:hover {
   color: #fff;
   text-decoration: underline;
+}
+
+/* A bolded brand-section link renders as a solid blue button (eg. Sign in). */
+.va-tool-button:any-link {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: var(--va-primary, #005ea2);
+  color: #fff;
+  text-decoration: none;
+}
+
+.va-tool-button:hover {
+  background-color: #1a4480;
+  color: #fff;
+  text-decoration: none;
 }
 
 .va-search-toggle {
@@ -394,6 +430,7 @@ header nav#nav {
 /* ---------- Desktop (>= 900px) ---------- */
 @media (width >= 900px) {
   .va-utility-inner {
+    position: relative;
     flex-flow: row wrap;
     align-items: center;
     justify-content: space-between;
@@ -403,12 +440,19 @@ header nav#nav {
     padding: 2px 0;
   }
 
-  /* Crisis line: compact dark-red button on the right */
-  .va-crisis-line {
-    display: inline-flex;
-    margin: 2px 0;
-    padding: 4px 16px;
-    font-size: 16px;
+  /* Crisis line: dark-red button pinned top-right that overhangs the grey bar,
+     dropping down over the navy brand bar below. */
+  .va-crisis-line:any-link {
+    position: absolute;
+    top: 5px;
+    right: 16px;
+    z-index: 300;
+    justify-content: flex-start;
+    gap: 12px;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 5px;
+    font-size: 15px;
     box-shadow: 0 2px 5px rgb(27 27 27 / 40%);
   }
 
@@ -443,6 +487,7 @@ header nav#nav {
     display: flex;
     align-items: stretch;
     padding: 0 16px;
+    border-top: 1px solid rgb(255 255 255 / 40%);
   }
 
   .va-nav-list {
@@ -450,6 +495,7 @@ header nav#nav {
     flex-flow: row nowrap;
     align-items: stretch;
     gap: 0;
+    width: auto;
     padding: 0;
     background-color: transparent;
   }
@@ -457,6 +503,11 @@ header nav#nav {
   .va-menu-open .va-nav-list {
     padding: 0;
     background-color: transparent;
+  }
+
+  /* secondary list (My VA / My HealtheVet): inline, pushed to the far right */
+  .va-nav-list-secondary {
+    margin-left: auto;
   }
 
   .va-nav-item {

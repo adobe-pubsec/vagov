@@ -14,6 +14,7 @@ import {
   toClassName,
   toCamelCase,
 } from './aem.js';
+import './datalayer.js';
 
 if (window.trustedTypes && window.trustedTypes.createPolicy) {
   const innerTT = window.trustedTypes.createPolicy('tt-inner', {
@@ -171,6 +172,175 @@ function decorateSectionMetadata(main) {
 }
 
 /**
+ * Adobe Experience Platform Web SDK (alloy) — direct/self-hosted loading per
+ * https://www.aem.live/developer/target-integration, used for Target
+ * personalization. The instance is named `webSdk` (not `alloy`) so it can
+ * coexist with an Adobe Launch-delivered Web SDK instance without both
+ * bootstraps fighting over `window.alloy`/`window.__alloyNS`.
+ *
+ * defaultConsent is 'pending': no data is collected and no decisions are
+ * fetched until the consent state resolves (see consent wiring below), so a
+ * visitor who has not consented is never tracked.
+ */
+function initWebSDK(path, config) {
+  if (!window.webSdk) {
+    // eslint-disable-next-line no-underscore-dangle -- global name expected by alloy.js
+    (window.__alloyNS ||= []).push('webSdk');
+    window.webSdk = (...args) => new Promise((resolve, reject) => {
+      window.setTimeout(() => {
+        window.webSdk.q.push([resolve, reject, args]);
+      });
+    });
+    window.webSdk.q = [];
+  }
+  return new Promise((resolve) => {
+    import(path)
+      .then(() => window.webSdk('configure', config))
+      // Never let a Web SDK load/configure failure hang the page: resolve anyway.
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.warn('[webSdk] load/configure failed, continuing without it:', error);
+      })
+      .finally(resolve);
+  });
+}
+
+function toCssSelector(selector) {
+  return selector.replace(/(\.\S+)?:eq\((\d+)\)/g, (_, clss, i) => `:nth-child(${Number(i) + 1}${clss ? ` of ${clss}` : ''})`);
+}
+
+async function getElementForProposition(proposition) {
+  const selector = proposition.data.prehidingSelector
+    || toCssSelector(proposition.data.selector);
+  return document.querySelector(selector);
+}
+
+/**
+ * Runs fn() once immediately if blocks/sections are already decorated, then
+ * again every time more of them finish decorating asynchronously.
+ * @param {Function} fn
+ */
+function onDecoratedElement(fn) {
+  if (document.querySelector('[data-block-status="loaded"],[data-section-status="loaded"]')) {
+    fn();
+  }
+  const observer = new MutationObserver((mutations) => {
+    if (mutations.some((m) => m.target.tagName === 'BODY'
+      || m.target.dataset.sectionStatus === 'loaded'
+      || m.target.dataset.blockStatus === 'loaded')) {
+      fn();
+    }
+  });
+  observer.observe(document.querySelector('main'), {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-block-status', 'data-section-status'],
+  });
+  observer.observe(document.querySelector('body'), { childList: true });
+}
+
+async function getAndApplyRenderDecisions() {
+  // Fetch decisions without auto-rendering, so we can apply them in step with
+  // the EDS page-load sequence. webPageDetails.viewName (fed from
+  // window.dataLayer.page.name) is what Target uses to resolve the named view.
+  const response = await window.webSdk('sendEvent', {
+    type: 'web.webpagedetails.pageViews',
+    renderDecisions: false,
+    xdm: {
+      web: {
+        webInteraction: { URL: window.location.href, name: document.title },
+        webPageDetails: { name: document.title, viewName: window.dataLayer?.page?.name },
+      },
+    },
+  });
+  const { propositions } = response;
+  onDecoratedElement(async () => {
+    const applicable = propositions.filter((p) => p.items.length > 0);
+    if (applicable.length === 0) return;
+    await window.webSdk('applyPropositions', { propositions: applicable });
+    // Drop dom-action items once applied so re-runs don't re-apply them.
+    await Promise.all(applicable.map(async (p) => {
+      const keepFlags = await Promise.all(p.items.map(async (i) => (
+        i.schema !== 'https://ns.adobe.com/personalization/dom-action'
+        || !(await getElementForProposition(i))
+      )));
+      p.items = p.items.filter((_, index) => keepFlags[index]);
+    }));
+  });
+  // Defer display reporting to avoid adding to long tasks.
+  window.setTimeout(() => {
+    window.webSdk('sendEvent', {
+      xdm: {
+        eventType: 'decisioning.propositionDisplay',
+        _experience: { decisioning: { propositions } },
+      },
+    });
+  });
+}
+
+const alloyLoadedPromise = initWebSDK('./alloy.js', {
+  datastreamId: '52111c1f-3550-417e-a968-2f17fb6ab876',
+  orgId: '0E061E2D61F93F260A495FD6@AdobeOrg',
+  defaultConsent: 'pending',
+});
+
+// Bridge the site consent decision (dispatched by consent-check.js) to the
+// Web SDK. 'in' releases queued events and lets decisions/analytics flow;
+// 'out' keeps the SDK from collecting. Fires render decisions once granted.
+let renderDecisionsRequested = false;
+window.addEventListener('consent.update', ({ detail }) => {
+  const collect = detail?.consented ? 'y' : 'n';
+  window.webSdk('setConsent', {
+    consent: [{
+      standard: 'Adobe',
+      version: '2.0',
+      value: { collect: { val: collect } },
+    }],
+  });
+  if (detail?.consented && !renderDecisionsRequested) {
+    renderDecisionsRequested = true;
+    alloyLoadedPromise.then(() => getAndApplyRenderDecisions().catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
+    }));
+  }
+});
+
+/**
+ * Splits a section into columns when it has an `item-widths` section-metadata
+ * value (e.g. `50,50`). Content is grouped into one column per width; place a
+ * `column-separator` block between blocks to mark where each column starts.
+ * @param {Element} main The main element
+ */
+function applySectionItemWidths(main) {
+  main.querySelectorAll(':scope > div.section[data-item-widths]').forEach((section) => {
+    const widths = section.dataset.itemWidths.split(',').map((w) => w.trim()).filter(Boolean);
+    if (widths.length < 2) return;
+
+    const groups = [[]];
+    [...section.children].forEach((child) => {
+      if (child.querySelector(':scope > .column-separator')) {
+        child.remove();
+        groups.push([]);
+      } else {
+        groups[groups.length - 1].push(child);
+      }
+    });
+
+    const container = document.createElement('div');
+    container.className = 'section-columns';
+    groups.forEach((group, i) => {
+      const column = document.createElement('div');
+      column.className = 'section-column';
+      if (widths[i]) column.style.setProperty('--section-column-width', `${widths[i]}%`);
+      group.forEach((el) => column.append(el));
+      container.append(column);
+    });
+    section.append(container);
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -181,6 +351,7 @@ export function decorateMain(main) {
   decorateSectionMetadata(main);
   decorateSections(main);
   decorateBlocks(main);
+  applySectionItemWidths(main);
   decorateButtons(main);
 }
 
