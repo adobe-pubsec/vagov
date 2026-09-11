@@ -133,7 +133,7 @@ p.button-wrapper {
 }
 
 a.button:any-link,
-button.button {
+button {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -151,6 +151,7 @@ button.button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  appearance: none;
 }
 
 a.button[aria-disabled="true"],
@@ -160,7 +161,7 @@ button.button:disabled {
 }
 
 a.button.primary,
-button.button.primary {
+button {
   border-color: var(--va-primary);
   background-color: var(--va-primary);
   color: var(--background-color);
@@ -240,6 +241,17 @@ button.button.accent:disabled:focus-visible {
   color: var(--dark-color);
 }
 
+/* leading circle-arrow on emphasized links; inherits the link colour */
+.cta-arrow {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.4em;
+  vertical-align: -0.15em;
+  background-color: currentcolor;
+  mask: url('/icons/circle-arrow.svg') center / contain no-repeat;
+}
+
 main img {
   max-width: 100%;
   width: auto;
@@ -314,6 +326,11 @@ main .section.primary-dark {
   color: #fff;
   margin: 0;
   padding: 40px 0;
+
+  a:not(.button):any-link {
+    color: #fff;
+    text-decoration: underline;
+  }
 }
 
 main .section.primary-dark h1,
@@ -351,5 +368,10 @@ main .section[data-padding="none"] {
 
 main .section[data-padding="medium"] {
   padding: 40px 0;
+}
+
+main .section[data-bullets="none"] ul {
+  list-style: none;
+  padding-left: 0;
 }
 

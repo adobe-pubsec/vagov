@@ -112,34 +112,48 @@ function buildAutoBlocks(main) {
  * @param {HTMLElement} main The main container element
  */
 function decorateButtons(main) {
-  main.querySelectorAll('p a[href]').forEach((a) => {
+  main.querySelectorAll('p a[href], li a[href]').forEach((a) => {
     a.title = a.title || a.textContent;
-    const p = a.closest('p');
+    const wrapper = a.closest('p, li');
     const text = a.textContent.trim();
 
     // quick structural checks
-    if (a.querySelector('img') || p.textContent.trim() !== text) return;
+    if (a.querySelector('img') || wrapper.textContent.trim() !== text) return;
 
     // skip URL display links
     try {
       if (new URL(a.href).href === new URL(text, window.location).href) return;
     } catch { /* continue */ }
 
-    // Only bolded links become buttons. A bold link is primary; adding italic
-    // (bold + italic) selects the secondary variant.
+    // Bold → button (primary; bold + italic → secondary), only in a paragraph
+    // (the CTA convention). Emphasis → a link with a leading circle-arrow, in
+    // paragraphs or lists. Formatting wrappers are unwrapped so the link never
+    // renders italic/bold text.
     const strong = a.closest('strong');
-    if (!strong) return;
     const em = a.closest('em');
 
-    p.className = 'button-wrapper';
-    a.className = 'button';
-    if (em) {
-      a.classList.add('secondary');
-      const outer = strong.contains(em) ? strong : em;
-      outer.replaceWith(a);
+    if (strong && wrapper.tagName === 'P') {
+      wrapper.className = 'button-wrapper';
+      a.className = 'button';
+      if (em) {
+        a.classList.add('secondary');
+        const outer = strong.contains(em) ? strong : em;
+        outer.replaceWith(a);
+      } else {
+        a.classList.add('primary');
+        strong.replaceWith(a);
+      }
+    } else if (em) {
+      em.replaceWith(a);
     } else {
-      a.classList.add('primary');
-      strong.replaceWith(a);
+      return;
+    }
+
+    // Emphasized links get a leading circle-arrow icon matching the link colour.
+    if (em) {
+      const arrow = document.createElement('span');
+      arrow.className = 'cta-arrow';
+      a.prepend(arrow);
     }
   });
 }
