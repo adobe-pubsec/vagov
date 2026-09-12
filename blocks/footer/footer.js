@@ -3,6 +3,8 @@
 // a primary link-column grid, a language-assistance row, the VA.gov logo,
 // and a bottom legal/utility link row.
 
+import { createOptimizedPicture } from '../../scripts/aem.js';
+
 /**
  * Fetch the footer fragment (metadata-independent dual-fetch:
  * /content first for localhost/aem-up, then root for DA/EDS production).
@@ -63,7 +65,14 @@ export default async function fetchAndDecorate(block) {
       bannerWrap = document.createElement('div');
       bannerWrap.className = 'va-footer-banner';
       const img = section.querySelector('img');
-      if (img) bannerWrap.append(img.cloneNode(true));
+      if (img) {
+        // Rebuild the picture at a larger rendition; the fragment's fallback
+        // <img> is only 750px wide, too soft for the full-bleed banner.
+        bannerWrap.append(createOptimizedPicture(img.src, img.alt, false, [
+          { media: '(min-width: 600px)', width: '1250' },
+          { width: '750' },
+        ]));
+      }
       return;
     }
     if (hasLogo(section)) {

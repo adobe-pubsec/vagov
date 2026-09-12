@@ -18,9 +18,10 @@ footer .footer {
 
 .va-footer-banner img {
   display: block;
-  width: 100%;
+  width: auto;
   height: auto;
   object-fit: cover;
+  margin: 0 auto;
 }
 
 .va-footer {
