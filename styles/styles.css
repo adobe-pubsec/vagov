@@ -252,6 +252,70 @@ button.button.accent:disabled:focus-visible {
   mask: url('/icons/circle-arrow.svg') center / contain no-repeat;
 }
 
+/* consent banner (bottom, wired to consent-check.js) */
+.va-consent-banner {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 1000;
+  background-color: var(--va-primary-darker, #162e51);
+  color: #fff;
+  box-shadow: 0 -2px 8px rgb(0 0 0 / 25%);
+}
+
+.va-consent-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.va-consent-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.va-consent-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.va-consent-banner button {
+  appearance: none;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  padding: 8px 24px;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.va-consent-accept {
+  background-color: #fff;
+  color: var(--va-primary-darker, #162e51);
+}
+
+.va-consent-decline {
+  background-color: transparent;
+  color: #fff;
+}
+
+.va-consent-decline:hover {
+  background-color: rgb(255 255 255 / 15%);
+}
+
+@media (width >= 700px) {
+  .va-consent-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 main img {
   max-width: 100%;
   width: auto;
