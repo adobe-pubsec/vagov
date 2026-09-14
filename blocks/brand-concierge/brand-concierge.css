@@ -1,6 +1,11 @@
-/* Mount point for the Brand Concierge client. The client typically renders its
-   own floating launcher; this keeps the mount out of the content flow so an
-   empty/unused mount doesn't add layout. Adjust if your client targets it. */
-.brand-concierge-mount:empty {
-  display: none;
+/* Mount point for the Brand Concierge client. The client renders a full chat
+   interface into #brand-concierge-mount with height:100%, so the block needs an
+   actual height for that to resolve (otherwise it collapses to 0 and nothing
+   shows). Give the block a fixed height; the client scrolls internally. */
+.brand-concierge {
+  height: 640px;
+}
+
+.brand-concierge-mount {
+  height: 100%;
 }
