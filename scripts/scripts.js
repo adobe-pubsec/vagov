@@ -10,6 +10,8 @@ import {
   loadSections,
   loadCSS,
   buildBlock,
+  decorateBlock,
+  loadBlock,
   readBlockConfig,
   toClassName,
   toCamelCase,
@@ -353,6 +355,28 @@ function applySectionItemWidths(main) {
 }
 
 /**
+ * Prepends an icon (white glyph on a navy circle) to the H1 of any section
+ * whose section-metadata sets `headline-icon` (→ `data-headline-icon="name"`).
+ * The glyph is pulled from `/icons/<name>.svg`.
+ * @param {Element} main The main element
+ */
+function decorateHeadlineIcons(main) {
+  main.querySelectorAll(':scope > .section[data-headline-icon]').forEach((section) => {
+    const name = section.dataset.headlineIcon;
+    const h1 = section.querySelector('h1');
+    if (!name || !h1) return;
+    const icon = document.createElement('span');
+    icon.className = 'headline-icon';
+    const img = document.createElement('img');
+    img.src = `${window.hlx.codeBasePath}/icons/${name}.svg`;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    icon.append(img);
+    h1.prepend(icon);
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -364,7 +388,137 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   applySectionItemWidths(main);
+  decorateHeadlineIcons(main);
   decorateButtons(main);
+}
+
+/**
+ * Builds a breadcrumb trail (nav > ol) from the URL path: a home link, one
+ * link per ancestor path segment (title from the prettified slug), and the
+ * current page (from the page h1). Matches the Block Collection markup.
+ */
+function buildBreadcrumbs() {
+  const nav = document.createElement('nav');
+  nav.className = 'breadcrumbs';
+  nav.setAttribute('aria-label', 'Breadcrumb');
+  const ol = document.createElement('ol');
+  nav.append(ol);
+
+  const addCrumb = (title, href, current) => {
+    const li = document.createElement('li');
+    if (current || !href) {
+      li.textContent = title;
+      if (current) li.setAttribute('aria-current', 'page');
+    } else {
+      const a = document.createElement('a');
+      a.href = href;
+      a.textContent = title;
+      li.append(a);
+    }
+    ol.append(li);
+  };
+
+  addCrumb('VA.gov home', '/');
+  const segments = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  let path = '';
+  segments.forEach((seg, i) => {
+    path += `/${seg}`;
+    const last = i === segments.length - 1;
+    const title = last
+      ? (document.querySelector('main h1')?.textContent.trim() || document.title)
+      : seg.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    addCrumb(title, path, last);
+  });
+
+  return nav;
+}
+
+/**
+ * `interior-2-col` template: split the page into a wide main column and a
+ * narrow right rail. Sections with section-metadata `Section: column-2`
+ * (rendered as `data-section="column-2"`) go to the rail; everything else
+ * stacks in the main column. A breadcrumb trail spans the top. Applied only to
+ * the page main (not fragments), after sections are decorated.
+ * @param {Element} main The main element
+ */
+function decorateTwoColTemplate(main) {
+  if (!document.body.classList.contains('interior-2-col')) return;
+  const sections = [...main.querySelectorAll(':scope > .section')];
+  if (!sections.length) return;
+
+  const starDivider = () => {
+    const div = document.createElement('div');
+    div.className = 'section-divider';
+    const img = document.createElement('img');
+    img.src = `${window.hlx.codeBasePath}/icons/stars-E7HVB7EU.png`;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    div.append(img);
+    return div;
+  };
+
+  const mainCol = document.createElement('div');
+  mainCol.className = 'interior-main';
+  const rail = document.createElement('div');
+  rail.className = 'interior-rail';
+  sections.forEach((s) => {
+    if (s.dataset.section === 'column-2') {
+      rail.append(s);
+      return;
+    }
+    // separate each main-column section with a ruled-stars divider
+    if (mainCol.children.length) mainCol.append(starDivider());
+    mainCol.append(s);
+  });
+
+  main.append(mainCol);
+  if (rail.children.length) main.append(rail);
+  else main.classList.add('interior-no-rail');
+
+  main.prepend(buildBreadcrumbs());
+}
+
+/**
+ * `interior-left-nav` template: a narrow left rail (secondary nav) beside a
+ * wide main content column — the mirror of interior-2-col. Sections that hold a
+ * `leftnav` block (or set section-metadata `Section: left`) go to the left
+ * rail; everything else stacks in the main column. A breadcrumb trail spans the
+ * top. Applied only to the page main (not fragments), after sections decorate.
+ * @param {Element} main The main element
+ */
+function decorateLeftNavTemplate(main) {
+  if (!document.body.classList.contains('interior-left-nav')) return;
+  const sections = [...main.querySelectorAll(':scope > .section')];
+  if (!sections.length) return;
+
+  const rail = document.createElement('div');
+  rail.className = 'leftnav-rail';
+  const mainCol = document.createElement('div');
+  mainCol.className = 'leftnav-main';
+  sections.forEach((s) => {
+    const isRail = s.dataset.section === 'left' || s.querySelector('.leftnav');
+    (isRail ? rail : mainCol).append(s);
+  });
+
+  // Autoblock the leftnav when none was authored, so every interior-left-nav
+  // page gets the left rail (title from metadata + nav loaded from a document).
+  if (!rail.querySelector('.leftnav')) {
+    const section = document.createElement('div');
+    section.className = 'section';
+    const wrapper = document.createElement('div');
+    const block = document.createElement('div');
+    block.className = 'leftnav';
+    wrapper.append(block);
+    section.append(wrapper);
+    rail.append(section);
+    decorateBlock(block);
+    loadBlock(block);
+  }
+
+  main.append(rail); // left rail first
+  main.append(mainCol);
+
+  main.prepend(buildBreadcrumbs());
 }
 
 /**
@@ -377,6 +531,8 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    decorateTwoColTemplate(main);
+    decorateLeftNavTemplate(main);
     document.body.classList.add('appear');
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }

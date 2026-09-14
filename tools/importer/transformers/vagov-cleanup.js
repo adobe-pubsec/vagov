@@ -56,6 +56,11 @@ export default function transform(hookName, element, payload) {
       'next-route-announcer',
       'va-banner',
       'va-breadcrumbs',
+      // "Last updated" footer (holds the <time> date + a feedback button) and
+      // any stray <time> — not authorable page content.
+      '.last-updated',
+      '[data-testid="content-footer"]',
+      'time',
       'link',
       'noscript',
       'iframe',

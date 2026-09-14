@@ -1,5 +1,5 @@
 /*
- * accordion-contact — sidebar "Ask questions" contact accordion.
+ * accordion — sidebar "Ask questions" contact accordion.
  * Each authored row is [label, body]; body holds a link list (contact links,
  * phone numbers, audience links, email/social). Rendered as native
  * <details>/<summary> disclosure panels (expand/collapse on click).
@@ -12,14 +12,14 @@ export default function decorate(block) {
     if (!label) return;
 
     const summary = document.createElement('summary');
-    summary.className = 'accordion-contact-item-label';
+    summary.className = 'accordion-item-label';
     summary.append(...label.childNodes);
 
     const details = document.createElement('details');
-    details.className = 'accordion-contact-item';
+    details.className = 'accordion-item';
 
     if (body) {
-      body.className = 'accordion-contact-item-body';
+      body.className = 'accordion-item-body';
       details.append(summary, body);
     } else {
       details.append(summary);

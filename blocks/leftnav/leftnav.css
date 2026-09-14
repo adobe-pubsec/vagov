@@ -1,0 +1,155 @@
+/* title header: icon circle + section name */
+.leftnav-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 16px;
+}
+
+.leftnav-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+.leftnav-title-icon img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.leftnav-title-text {
+  font-family: var(--heading-font-family);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------- USWDS-style bordered accordion ---------- */
+.leftnav-accordion {
+  border-top: 1px solid #dfe1e2;
+}
+
+.leftnav-acc-item {
+  border-bottom: 1px solid #dfe1e2;
+}
+
+.leftnav-acc-heading {
+  margin: 0;
+  font-size: inherit;
+}
+
+.leftnav-acc-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 4px;
+  border: 0;
+  background: none;
+  color: var(--link-color);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leftnav-acc-button:hover {
+  text-decoration: underline;
+}
+
+/* +/- affordance */
+.leftnav-acc-button::after {
+  content: '+';
+  flex-shrink: 0;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--link-color);
+}
+
+.leftnav-acc-button[aria-expanded='true']::after {
+  content: '\2013'; /* – */
+}
+
+.leftnav-acc-content[hidden] {
+  display: none;
+}
+
+.leftnav-acc-content {
+  padding: 0 0 12px;
+}
+
+/* top-level plain link (no accordion group) */
+.leftnav-acc-link:any-link {
+  display: block;
+  padding: 14px 4px;
+  color: var(--link-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.leftnav-acc-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- sidenav link list inside a group ---------- */
+.leftnav-sidenav,
+.leftnav-sidenav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* nested sub-lists are collapsed except along the active path */
+.leftnav-sidenav ul {
+  display: none;
+}
+
+.leftnav-sidenav ul.leftnav-open {
+  display: block;
+}
+
+.leftnav-sidenav a:any-link {
+  display: block;
+  padding: 8px 12px;
+  border-left: 4px solid transparent;
+  color: var(--link-color);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.leftnav-sidenav a:hover {
+  text-decoration: underline;
+}
+
+/* active item: grey background wraps the whole <li> (page + nested sub-pages) */
+.leftnav-sidenav li.leftnav-current {
+  padding-bottom: 8px;
+  background-color: var(--light-color);
+}
+
+/* blue bar only on the actual active page link */
+.leftnav-sidenav a[aria-current='page'] {
+  border-left-color: var(--va-primary);
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+/* nested levels indent progressively */
+.leftnav-sidenav ul a:any-link {
+  padding-left: 28px;
+}
+
+.leftnav-sidenav ul ul a:any-link {
+  padding-left: 44px;
+}

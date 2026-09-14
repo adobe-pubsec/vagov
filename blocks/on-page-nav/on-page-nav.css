@@ -1,0 +1,38 @@
+.on-page-nav {
+  margin: 40px 0 32px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.on-page-nav-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.on-page-nav-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.on-page-nav-list li {
+  margin: 0 0 14px;
+}
+
+.on-page-nav-list a:any-link {
+  display: inline-flex;
+  gap: 8px;
+  color: var(--link-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.on-page-nav-list a:hover {
+  text-decoration: underline;
+}
+
+.on-page-nav-list a::before {
+  content: '\2193'; /* down arrow */
+  font-weight: 400;
+}

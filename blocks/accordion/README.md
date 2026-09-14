@@ -1,4 +1,4 @@
-# accordion-contact
+# accordion
 
 Custom **accordion** block. 
 

@@ -1,10 +1,10 @@
 {
-  "variantName": "accordion-contact",
+  "variantName": "accordion",
   "baseBlock": "accordion",
   "canonicalModel": "standalone",
   "visualCharacteristics": "Light background, bordered disclosure panels stacked vertically. Each panel has a bold heading with a rotating chevron affordance; expanding reveals a link list (contact links, phone numbers, audience links, email/social).",
   "contentPattern": "One row per panel: cell 1 = panel heading; cell 2 = body (a link list / contact content). Rendered as native <details>/<summary>.",
   "usage": "Sidebar 'Ask questions' style contact accordion with expand/collapse panels.",
   "options": [],
-  "memberVariantIds": ["accordion-contact"]
+  "memberVariantIds": ["accordion"]
 }

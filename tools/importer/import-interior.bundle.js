@@ -17,10 +17,10 @@ var CustomImportScript = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // import-home.js
-  var import_home_exports = {};
-  __export(import_home_exports, {
-    default: () => import_home_default
+  // import-interior.js
+  var import_interior_exports = {};
+  __export(import_interior_exports, {
+    default: () => import_interior_default
   });
 
   // parsers/cards-benefits.js
@@ -52,111 +52,58 @@ var CustomImportScript = (() => {
     element.replaceWith(block);
   }
 
-  // parsers/columns-promo.js
+  // parsers/on-page-nav.js
   function parse2(element, { document: document2 }) {
-    const row = element.querySelector(".vads-grid-row") || element;
-    let columns = Array.from(row.querySelectorAll(':scope > div[class*="grid-col"]'));
-    if (!columns.length) {
-      columns = Array.from(row.querySelectorAll(":scope > div"));
-    }
-    const rowCells = columns.map((col) => {
-      const content = [];
-      const img = col.querySelector("img, picture, va-icon");
-      if (img) content.push(img);
-      const textNodes = Array.from(col.querySelectorAll("h1, h2, h3, h4, h5, h6, p"));
-      content.push(...textNodes);
-      const links = Array.from(col.querySelectorAll("a, va-link")).filter((a) => !content.some((el) => el.contains && el.contains(a)));
-      content.push(...links);
-      return content.length ? content : "";
-    }).filter((cell) => cell !== "");
-    if (!rowCells.length) {
-      element.replaceWith(...element.childNodes);
-      return;
-    }
-    const cells = [rowCells];
-    const block = WebImporter.Blocks.createBlock(document2, { name: "columns-promo", cells });
+    const block = WebImporter.Blocks.createBlock(document2, { name: "on-page-nav", cells: [""] });
     element.replaceWith(block);
   }
 
-  // parsers/columns-search.js
+  // parsers/accordion.js
   function parse3(element, { document: document2 }) {
-    const row = element.querySelector(".vads-grid-row") || element;
-    let columns = Array.from(row.querySelectorAll(':scope > div[class*="grid-col"]'));
-    if (!columns.length) {
-      columns = Array.from(row.querySelectorAll(":scope > div"));
+    let items = Array.from(element.querySelectorAll(":scope > va-accordion-item"));
+    if (!items.length) {
+      items = Array.from(element.querySelectorAll("va-accordion-item"));
     }
-    const rowCells = columns.map((col) => {
-      const content = [];
-      const nodes = Array.from(
-        col.querySelectorAll("h1, h2, h3, h4, h5, h6, ul, ol, va-search-input, p")
-      );
-      nodes.forEach((node) => {
-        if (!nodes.some((other) => other !== node && other.contains(node))) {
-          content.push(node);
-        }
-      });
-      return content.length ? content : "";
-    }).filter((cell) => cell !== "");
-    if (!rowCells.length) {
-      element.replaceWith(...element.childNodes);
-      return;
-    }
-    const cells = [rowCells];
-    const block = WebImporter.Blocks.createBlock(document2, { name: "columns-search", cells });
-    element.replaceWith(block);
-  }
-
-  // parsers/form.js
-  function parse4(element, { document: document2 }) {
-    const container = element.closest("form") || element.closest(".email-signup-form") || element.closest(".homepage-email-update-wrapper") || element.parentElement || element;
-    const contentCell = [];
-    const textNodes = Array.from(
-      container.querySelectorAll("h1, h2, h3, h4, h5, h6, p, label")
-    );
-    textNodes.forEach((node) => {
-      if (!textNodes.some((other) => other !== node && other.contains(node))) {
-        contentCell.push(node.cloneNode(true));
-      }
-    });
-    const controls = Array.from(
-      container.querySelectorAll("va-text-input, input, va-button, button, va-select, va-checkbox")
-    );
-    controls.forEach((ctrl) => {
-      if (!controls.some((other) => other !== ctrl && other.contains(ctrl))) {
-        contentCell.push(ctrl.cloneNode(true));
-      }
-    });
-    if (!contentCell.length) {
-      element.replaceWith(...element.childNodes);
-      return;
-    }
-    const cells = [[contentCell]];
-    const block = WebImporter.Blocks.createBlock(document2, { name: "form", cells });
-    element.replaceWith(block);
-  }
-
-  // parsers/hero-welcome.js
-  function parse5(element, { document: document2 }) {
     const cells = [];
-    const bgImage = element.querySelector("img, picture");
-    if (bgImage) {
-      cells.push([bgImage]);
-    }
-    const contentCell = [];
-    const nodes = Array.from(
-      element.querySelectorAll("h1, h2, h3, h4, h5, h6, p, va-link-action, va-link, va-button, a")
-    );
-    nodes.forEach((node) => {
-      if (!nodes.some((other) => other !== node && other.contains(node))) {
-        contentCell.push(node);
+    items.forEach((item) => {
+      let label = (item.getAttribute("header") || "").trim();
+      let labelHeading = null;
+      if (!label) {
+        labelHeading = item.querySelector("h1, h2, h3, h4, h5, h6");
+        if (labelHeading) label = (labelHeading.textContent || "").trim();
+      }
+      const body = document2.createElement("div");
+      Array.from(item.childNodes).forEach((node) => {
+        body.appendChild(node.cloneNode(true));
+      });
+      if (labelHeading) {
+        const clonedHeadings = Array.from(body.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+        const dupe = clonedHeadings.find(
+          (h) => (h.textContent || "").trim() === label
+        );
+        if (dupe) dupe.remove();
+      }
+      body.querySelectorAll("va-link").forEach((vl) => {
+        const href = vl.getAttribute("href") || "#";
+        const text = (vl.textContent || "").trim() || vl.getAttribute("text") || vl.getAttribute("label") || href;
+        const a = document2.createElement("a");
+        a.href = href;
+        a.textContent = text;
+        vl.replaceWith(a);
+      });
+      const bodyContent = Array.from(body.childNodes).filter((node) => {
+        if (node.nodeType === 3) return (node.textContent || "").trim().length > 0;
+        return node.nodeType === 1;
+      });
+      if (label || bodyContent.length) {
+        cells.push([label || "", bodyContent.length ? bodyContent : ""]);
       }
     });
-    if (!contentCell.length && !bgImage) {
+    if (!cells.length) {
       element.replaceWith(...element.childNodes);
       return;
     }
-    cells.push([contentCell]);
-    const block = WebImporter.Blocks.createBlock(document2, { name: "hero-welcome", cells });
+    const block = WebImporter.Blocks.createBlock(document2, { name: "accordion", cells });
     element.replaceWith(block);
   }
 
@@ -198,7 +145,7 @@ var CustomImportScript = (() => {
     }
   }
 
-  // transformers/vagov-sections.js
+  // transformers/vagov-interior-sections.js
   var SECTION_MARKER_ATTR = "data-excat-section-id";
   function querySection(root, selectors) {
     for (const sel of selectors) {
@@ -207,29 +154,36 @@ var CustomImportScript = (() => {
     }
     return null;
   }
+  function sectionMetadata(section) {
+    if (section.metadata && Object.keys(section.metadata).length) return section.metadata;
+    if (section.style) return { style: section.style };
+    return null;
+  }
   function transform2(hookName, element, payload) {
     const sections = payload.template && payload.template.sections || [];
     if (hookName === "beforeTransform") {
       for (let i = sections.length - 1; i >= 0; i -= 1) {
         const section = sections[i];
-        if (i === 0 && !section.style) continue;
+        const meta = sectionMetadata(section);
+        if (i === 0 && !meta) continue;
         const sectionEl = querySection(element, section.selector);
         if (!sectionEl) continue;
         const hr = document.createElement("hr");
-        if (section.style) hr.setAttribute(SECTION_MARKER_ATTR, section.id);
+        if (meta) hr.setAttribute(SECTION_MARKER_ATTR, section.id);
         sectionEl.before(hr);
       }
     }
     if (hookName === "afterTransform") {
       for (let i = sections.length - 1; i >= 0; i -= 1) {
         const section = sections[i];
-        if (!section.style) continue;
+        const meta = sectionMetadata(section);
+        if (!meta) continue;
         const marker = element.querySelector(`[${SECTION_MARKER_ATTR}="${section.id}"]`);
         const anchor = marker || querySection(element, section.selector);
         if (!anchor) continue;
         const metadataBlock = WebImporter.Blocks.createBlock(document, {
           name: "Section Metadata",
-          cells: { style: section.style }
+          cells: meta
         });
         anchor.after(metadataBlock);
         if (marker) {
@@ -240,102 +194,43 @@ var CustomImportScript = (() => {
     }
   }
 
-  // import-home.js
+  // import-interior.js
   var parsers = {
     "cards-benefits": parse,
-    "columns-promo": parse2,
-    "columns-search": parse3,
-    "form": parse4,
-    "hero-welcome": parse5
+    "on-page-nav": parse2,
+    accordion: parse3
   };
   var PAGE_TEMPLATE = {
-    name: "home",
-    description: "VA.gov homepage: hero welcome, search + top pages, news app promo, benefits card grid, feedback, and email signup.",
+    name: "interior-2-col",
+    description: "VA.gov interior/hub page: hero intro with a headline icon, grouped benefit sections in the main column, and a right column with on-page navigation and a contact accordion.",
     urls: [
-      "https://www.va.gov/"
+      "https://www.va.gov/education/"
     ],
     blocks: [
       {
-        name: "hero-welcome",
-        instances: [".homepage-hero__wrapper"]
-      },
-      {
-        name: "columns-search",
-        instances: [".template-module__JEykya__wrapper"]
-      },
-      {
-        name: "columns-promo",
-        instances: ["#content > div.vads-u-background-color--primary-dark"]
-      },
-      {
         name: "cards-benefits",
-        instances: [".vads-grid-row.vads-grid-gap-3"]
+        instances: [
+          "#content article > div:nth-of-type(2)",
+          "#content article > div:nth-of-type(3)",
+          "#content article > div:nth-of-type(4)",
+          "#content article > section"
+        ]
       },
-      {
-        name: "form",
-        instances: [".homepage-email-input"]
-      }
+      { name: "on-page-nav", instances: ["va-on-this-page"] },
+      { name: "accordion", instances: ["#hub-rail va-accordion", "va-accordion"] }
     ],
     sections: [
-      {
-        id: "rc4c1",
-        name: "hero",
-        selector: [".homepage-hero__wrapper"],
-        style: null,
-        blocks: ["hero-welcome"],
-        defaultContent: []
-      },
-      {
-        id: "rc4c2",
-        name: "search-top-pages",
-        selector: [".template-module__JEykya__wrapper"],
-        style: null,
-        blocks: ["columns-search"],
-        defaultContent: []
-      },
-      {
-        id: "rc4c3",
-        name: "news-app-promo",
-        selector: ["#content > div.vads-u-background-color--primary-dark"],
-        style: "primary-dark",
-        blocks: ["columns-promo"],
-        defaultContent: []
-      },
-      {
-        id: "rc4c4",
-        name: "explore-benefits",
-        selector: ["#content > section.vads-grid-container.vads-u-padding--2p5"],
-        style: null,
-        blocks: ["cards-benefits"],
-        defaultContent: ["#content > section.vads-grid-container.vads-u-padding--2p5 > div:nth-of-type(1)"]
-      },
-      {
-        id: "rc4c5",
-        name: "feedback",
-        selector: ["#content > div.vads-grid-container"],
-        style: null,
-        blocks: [],
-        defaultContent: ["#content > div.vads-grid-container"]
-      },
-      {
-        id: "rc4c6",
-        name: "email-signup",
-        selector: [".homepage-email-update-wrapper"],
-        style: "primary-alt-lightest",
-        blocks: ["form"],
-        defaultContent: ["#vets-banner-1"]
-      }
+      { id: "s1", name: "hero-intro", selector: ["#content article > div:nth-of-type(1)"], metadata: { "headline-icon": "school" }, blocks: [], defaultContent: ["#content article > div:nth-of-type(1)"] },
+      { id: "s2", name: "get-gi-bill-benefits", selector: ["#content article > div:nth-of-type(2)"], blocks: ["cards-benefits"], defaultContent: ["#content article > div:nth-of-type(2) > h2"] },
+      { id: "s3", name: "manage-benefits", selector: ["#content article > div:nth-of-type(3)"], blocks: ["cards-benefits"], defaultContent: ["#content article > div:nth-of-type(3) > h2"] },
+      { id: "s4", name: "more-information", selector: ["#content article > div:nth-of-type(4)"], blocks: ["cards-benefits"], defaultContent: ["#content article > div:nth-of-type(4) > h2"] },
+      { id: "s5", name: "other-va-benefits", selector: ["#content article > section"], blocks: ["cards-benefits"], defaultContent: ["#content article > section > h2"] },
+      { id: "s6", name: "right-column", selector: ["#hub-rail"], metadata: { section: "column-2" }, blocks: ["on-page-nav", "accordion"], defaultContent: [] }
     ]
   };
-  var transformers = [
-    transform,
-    ...PAGE_TEMPLATE.sections && PAGE_TEMPLATE.sections.length > 1 ? [transform2] : []
-  ];
+  var transformers = [transform, transform2];
   function executeTransformers(hookName, element, payload) {
-    const enhancedPayload = {
-      ...payload,
-      template: PAGE_TEMPLATE
-    };
+    const enhancedPayload = { ...payload, template: PAGE_TEMPLATE };
     transformers.forEach((transformerFn) => {
       try {
         transformerFn.call(null, hookName, element, enhancedPayload);
@@ -346,6 +241,7 @@ var CustomImportScript = (() => {
   }
   function findBlocksOnPage(document2, template) {
     const pageBlocks = [];
+    const seen = /* @__PURE__ */ new Set();
     template.blocks.forEach((blockDef) => {
       blockDef.instances.forEach((selector) => {
         const elements = document2.querySelectorAll(selector);
@@ -353,23 +249,37 @@ var CustomImportScript = (() => {
           console.warn(`Block "${blockDef.name}" selector not found: ${selector}`);
         }
         elements.forEach((element) => {
-          pageBlocks.push({
-            name: blockDef.name,
-            selector,
-            element,
-            section: blockDef.section || null
-          });
+          if (seen.has(element)) return;
+          seen.add(element);
+          pageBlocks.push({ name: blockDef.name, selector, element });
         });
       });
     });
     console.log(`Found ${pageBlocks.length} block instances on page`);
     return pageBlocks;
   }
-  var import_home_default = {
+  function assembleRightColumn(document2) {
+    const onThisPage = document2.querySelector("#content va-on-this-page, va-on-this-page");
+    const rail = document2.querySelector("#hub-rail");
+    if (onThisPage && rail) rail.prepend(onThisPage);
+  }
+  function createPageMetadata(main, document2) {
+    const cells = {};
+    const title = document2.querySelector("title");
+    if (title) cells.Title = title.textContent.replace(/\s*\|.*$/, "").trim();
+    const desc = document2.querySelector('meta[name="description"]');
+    if (desc && desc.content) cells.Description = desc.content.trim();
+    cells.Template = "interior-2-col";
+    const block = WebImporter.Blocks.createBlock(document2, { name: "Metadata", cells });
+    main.append(block);
+  }
+  var import_interior_default = {
     transform: (payload) => {
-      const { document: document2, url, html, params } = payload;
+      const { document: document2, url, params } = payload;
       const main = document2.body;
       executeTransformers("beforeTransform", main, payload);
+      document2.querySelectorAll("#content article > div:nth-of-type(1) va-icon").forEach((n) => n.remove());
+      assembleRightColumn(document2);
       const pageBlocks = findBlocksOnPage(document2, PAGE_TEMPLATE);
       pageBlocks.forEach((block) => {
         if (!block.element.parentNode) return;
@@ -387,7 +297,7 @@ var CustomImportScript = (() => {
       executeTransformers("afterTransform", main, payload);
       const hr = document2.createElement("hr");
       main.appendChild(hr);
-      WebImporter.rules.createMetadata(main, document2);
+      createPageMetadata(main, document2);
       WebImporter.rules.transformBackgroundImages(main, document2);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
       const rawPath = new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html?$/, "");
@@ -403,5 +313,5 @@ var CustomImportScript = (() => {
       }];
     }
   };
-  return __toCommonJS(import_home_exports);
+  return __toCommonJS(import_interior_exports);
 })();

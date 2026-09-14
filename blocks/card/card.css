@@ -1,0 +1,27 @@
+.card {
+  background-color: var(--light-color);
+  margin-bottom: 24px;
+  padding-bottom: 10px;
+}
+
+.card p {
+  padding: 0 15px;
+}
+
+.card .card-image {
+  line-height: 0;
+}
+
+.card .card-image img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.card .card-body {
+  margin: 16px;
+}
+
+.card .card-body a:any-link {
+  text-decoration: underline;
+}

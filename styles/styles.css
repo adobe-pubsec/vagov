@@ -322,6 +322,32 @@ main img {
   height: auto;
 }
 
+/* headline icon: white glyph on a navy circle in the gutter; the whole H1
+   indents to make room, so wrapped lines align under the first line's text. */
+.section[data-headline-icon] h1 {
+  position: relative;
+  padding-left: 60px;
+}
+
+.headline-icon {
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+.headline-icon img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
 .icon {
   display: inline-block;
   height: 24px;
@@ -376,6 +402,205 @@ main > .section > .section-columns > .section-column {
   }
 }
 
+/* ---------- interior-2-col template (main content + right rail) ---------- */
+body.interior-2-col main {
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 40px 16px 64px;
+}
+
+/* columns align to the header nav (drop the global `main > div` 16px margin) */
+body.interior-2-col .interior-main,
+body.interior-2-col .interior-rail {
+  margin: 0;
+}
+
+/* breadcrumbs (spans the full width above both columns) */
+body.interior-2-col .breadcrumbs {
+  margin-bottom: 24px;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  list-style: none;
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumbs li:not(:last-child)::after {
+  content: '\203A';
+  color: #565c65;
+}
+
+.breadcrumbs a:any-link {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+.breadcrumbs [aria-current="page"] {
+  color: var(--link-color);
+  font-weight: 700;
+}
+
+/* content fills its column (override the default centered max-width) */
+body.interior-2-col .interior-main > .section > div,
+body.interior-2-col .interior-rail > .section > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+body.interior-2-col .interior-main > .section + .section {
+  margin-top: 32px;
+}
+
+/* ruled-stars divider between main-column sections */
+body.interior-2-col .section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 40px 0;
+}
+
+body.interior-2-col .section-divider::before,
+body.interior-2-col .section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #c9c9c9;
+}
+
+body.interior-2-col .section-divider img {
+  width: auto;
+  height: 16px;
+}
+
+/* rail: related links / callouts */
+body.interior-2-col .interior-rail {
+  margin-top: 40px;
+}
+
+body.interior-2-col .interior-rail > .section + .section {
+  margin-top: 24px;
+}
+
+@media (width >= 900px) {
+  body.interior-2-col main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 0 48px;
+    align-items: start;
+    padding: 48px 16px 80px;
+  }
+
+  body.interior-2-col .breadcrumbs {
+    grid-column: 1 / -1;
+  }
+
+  body.interior-2-col .interior-rail {
+    margin-top: 0;
+    position: sticky;
+    top: 24px;
+  }
+
+  /* pages without a sidebar section: single, readable column */
+  body.interior-2-col main.interior-no-rail {
+    display: block;
+    max-width: 800px;
+  }
+}
+
+/* match the header, which widens its content box at >= 1200px */
+@media (width >= 1200px) {
+  body.interior-2-col main {
+    max-width: 1200px;
+  }
+}
+
+/* ---------- interior-left-nav template (small left rail + wide main) ------- */
+body.interior-left-nav main {
+  max-width: var(--content-max-width, 1024px);
+  margin: 0 auto;
+  padding: 40px 16px 64px;
+}
+
+body.interior-left-nav .leftnav-rail,
+body.interior-left-nav .leftnav-main {
+  margin: 0;
+}
+
+/* content fills its column */
+body.interior-left-nav .leftnav-main > .section > div,
+body.interior-left-nav .leftnav-rail > .section > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* align the rail title and the main H1 at the top of the row */
+body.interior-left-nav .leftnav-title {
+  margin-top: 0;
+}
+
+body.interior-left-nav .leftnav-main > .section:first-child > div > :first-child {
+  margin-top: 0;
+}
+
+/* space between the breadcrumb and the title/H1 row */
+body.interior-left-nav .breadcrumbs {
+  margin-bottom: 50px;
+}
+
+body.interior-left-nav .leftnav-main > .section + .section {
+  margin-top: 32px;
+}
+
+body.interior-left-nav .leftnav-rail {
+  margin-top: 32px;
+}
+
+@media (width >= 900px) {
+  body.interior-left-nav main {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 0 48px;
+    align-items: start;
+    padding: 48px 16px 80px;
+  }
+
+  body.interior-left-nav .breadcrumbs {
+    grid-column: 1 / -1;
+  }
+
+  body.interior-left-nav .leftnav-rail {
+    margin-top: 0;
+    position: sticky;
+    top: 24px;
+  }
+
+  /* pages without a left-nav section: single, readable column */
+  body.interior-left-nav main.leftnav-no-rail {
+    display: block;
+    max-width: 800px;
+  }
+}
+
+@media (width >= 1200px) {
+  body.interior-left-nav main {
+    max-width: 1200px;
+  }
+}
+
 /* section metadata */
 main .section.light,
 main .section.highlight {
@@ -415,6 +640,12 @@ main .section.primary-alt-lightest {
 
 main .section.white-light-split {
   background: linear-gradient(to right,white 0 50%,var(--va-primary-alt-lightest)50% 100%);
+}
+
+main .section.heading-intro {
+  p {
+    font-size: 1.25rem;
+  }
 }
 
 main .section[data-padding="none"] {
