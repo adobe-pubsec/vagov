@@ -2,42 +2,62 @@
 //
 // Web SDK (scripts.js configure → `conversation`) already handles identity,
 // context, and comms. This block provides the mount element and loads the
-// Brand Concierge *client* (the chat UI) after the visitor consents.
-//
-// Brand Concierge is beta and the client is provisioned per-customer, so set
-// the two values below from your Brand Concierge setup (Tags "Brand Concierge"
-// extension / your Adobe contact). Until CLIENT_SRC is set, the block just
-// renders the (empty) mount.
-const CLIENT_SRC = ''; // e.g. 'https://.../brand-concierge-client.js'
-const CLIENT_GLOBAL = ''; // window global the client exposes, e.g. 'AdobeBrandConcierge'
+// Brand Concierge *client* (chat UI) after the visitor consents, then bootstraps
+// it against our Web SDK instance.
+// Ref: https://experienceleague.adobe.com/en/docs/brand-concierge/content/documentation/developer-customization-guide
+
+const CLIENT_SRC = 'https://experience.adobe.net/solutions/experience-platform-brand-concierge-web-agent/static-assets/main.js';
+// Must match the Web SDK instance configured in scripts.js (window.webSdk).
+const INSTANCE_NAME = 'webSdk';
+const MOUNT_ID = 'brand-concierge-mount';
+
+// Web Client styling/branding (see the dev guide for the full schema:
+// metadata, behavior, disclaimer, text, arrays, assets, theme).
+const stylingConfigurations = {
+  metadata: {
+    brandName: 'VA.gov',
+    language: 'en-US',
+    namespace: 'brand-concierge',
+  },
+};
 
 let clientLoaded = false;
 
-function loadClient(mount) {
-  if (clientLoaded || !CLIENT_SRC) return;
+function bootstrap() {
+  window.adobe?.concierge?.bootstrap({
+    instanceName: INSTANCE_NAME,
+    selector: `#${MOUNT_ID}`,
+    stylingConfigurations,
+    // Forward a few interactions into our analytics (keep this lightweight).
+    onEvent: (event) => {
+      if (!window.trackInteraction) return;
+      if (['query:submitted', 'card:clicked', 'feedback:submitted'].includes(event.eventType)) {
+        window.trackInteraction(`brand-concierge:${event.eventType}`);
+      }
+    },
+  });
+}
+
+function loadClient() {
+  if (clientLoaded) return;
   clientLoaded = true;
   const script = document.createElement('script');
   script.src = CLIENT_SRC;
   script.async = true;
-  script.onload = () => {
-    // Many builds self-mount a launcher on load; if the client exposes an
-    // init/render, point it at our mount.
-    const client = CLIENT_GLOBAL ? window[CLIENT_GLOBAL] : null;
-    if (client && typeof client.init === 'function') client.init({ mount });
-    else if (client && typeof client.render === 'function') client.render(mount);
-  };
+  script.onload = bootstrap;
   document.head.appendChild(script);
 }
 
 export default function decorate(block) {
   block.textContent = '';
   const mount = document.createElement('div');
+  mount.id = MOUNT_ID;
   mount.className = 'brand-concierge-mount';
   block.append(mount);
 
   // Load only after consent (matches the rest of our martech). consent-check.js
   // dispatches consent.update after blocks decorate, so the listener catches it.
   window.addEventListener('consent.update', ({ detail }) => {
-    if (detail?.consented) loadClient(mount);
+    if (detail?.consented) loadClient();
   });
 }
