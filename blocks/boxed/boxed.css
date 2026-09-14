@@ -1,0 +1,17 @@
+.boxed {
+  padding: 24px 32px;
+  background-color: var(--light-color, #f0f0f0);
+}
+
+/* feature variant: blue box */
+.boxed.feature {
+  background-color: var(--va-primary-alt-lightest, #e1f3f8);
+}
+
+.boxed > :first-child {
+  margin-top: 0;
+}
+
+.boxed > :last-child {
+  margin-bottom: 0;
+}

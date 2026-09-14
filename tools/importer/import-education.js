@@ -120,8 +120,6 @@ export default {
     executeTransformers('afterTransform', main, payload);
 
     // 5. Built-in WebImporter rules
-    const hr = document.createElement('hr');
-    main.appendChild(hr);
     WebImporter.rules.createMetadata(main, document);
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
