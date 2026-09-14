@@ -132,8 +132,11 @@ p.button-wrapper {
   margin: 12px 0;
 }
 
+/* `button:not(.brand-concierge *)` excludes the Brand Concierge subtree (client
+   UI + our .bc-* controls), which manage their own buttons; the global bare-
+   element rule would otherwise repaint every third-party button as a VA CTA. */
 a.button:any-link,
-button:not(.bc-prompt-suggestion-button) {
+button:not(.brand-concierge *) {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -161,7 +164,7 @@ button.button:disabled {
 }
 
 a.button.primary,
-button:not(.bc-prompt-suggestion-button) {
+button:not(.brand-concierge *) {
   border-color: var(--va-primary);
   background-color: var(--va-primary);
   color: var(--background-color);
