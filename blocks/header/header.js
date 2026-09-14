@@ -1,16 +1,12 @@
 // VA.gov header: utility bar + brand/search bar + click-triggered two-level megamenu.
-// Content-first: all labels/links/images come from content/nav.plain.html.
+// Content-first: all labels/links/images come from nav.plain.html.
 // This module reads that DOM and builds the interactive header generically.
 
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
-/**
- * Fetch the nav fragment (metadata-independent dual-fetch:
- * /content first for localhost/aem-up, then root for DA/EDS production).
- */
+/** Fetch the nav fragment. */
 async function fetchNav() {
-  let resp = await fetch('/content/nav.plain.html');
-  if (!resp.ok) resp = await fetch('/nav.plain.html');
+  const resp = await fetch('/nav.plain.html');
   if (!resp.ok) return null;
   const html = await resp.text();
   const tpl = document.createElement('div');

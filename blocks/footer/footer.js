@@ -1,17 +1,13 @@
 // VA.gov footer. Content-first: all copy/links/images come from
-// content/footer.plain.html. This module reads that DOM and lays it out:
+// footer.plain.html. This module reads that DOM and lays it out:
 // a primary link-column grid, a language-assistance row, the VA.gov logo,
 // and a bottom legal/utility link row.
 
 import { createOptimizedPicture } from '../../scripts/aem.js';
 
-/**
- * Fetch the footer fragment (metadata-independent dual-fetch:
- * /content first for localhost/aem-up, then root for DA/EDS production).
- */
+/** Fetch the footer fragment. */
 async function fetchFooter() {
-  let resp = await fetch('/content/footer.plain.html');
-  if (!resp.ok) resp = await fetch('/footer.plain.html');
+  const resp = await fetch('/footer.plain.html');
   if (!resp.ok) return null;
   const html = await resp.text();
   const tpl = document.createElement('div');

@@ -22,7 +22,7 @@ function loadScript(src) {
     script.src = src;
     script.async = true;
     script.onload = resolve;
-    script.onerror = reject;
+    script.onerror = () => reject(new Error(`failed to load ${src}`));
     document.head.appendChild(script);
   });
 }
