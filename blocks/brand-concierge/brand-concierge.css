@@ -1,23 +1,105 @@
-/* Mount point for the Brand Concierge client. The client renders a full chat
-   interface into #brand-concierge-mount with height:100%, so the block needs an
-   actual height for that to resolve (otherwise it collapses to 0 and nothing
-   shows). Give the block a fixed height; the client scrolls internally. */
+/* The client renders its chat UI into #brand-concierge-mount at height:100%, so
+   the mount and its wrappers need real height. Welcome view renders inline;
+   once a chat starts the block flips to a modal (.bc-active), and closing it
+   minimizes to a launcher (.bc-minimized). */
+
 .brand-concierge {
-  height: 640px;
+  position: relative;
+  height: 480px;
 }
 
+.brand-concierge .bc-panel,
 .brand-concierge-mount {
   height: 100%;
 }
 
-.brand-concierge-container {
-  .chat-interface {
-    .header-section {
-      display: none;
-    }
-  }
+.brand-concierge .bc-close,
+.brand-concierge .bc-launcher {
+  display: none;
+}
 
-  .disclaimer-message {
-    display: none;
-  }
+/* ---------- chat active → modal ---------- */
+.brand-concierge.bc-active {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(0 0 0 / 50%);
+}
+
+.brand-concierge.bc-active .bc-panel {
+  position: relative;
+  width: min(760px, 92vw);
+  height: min(720px, 85vh);
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 30%);
+}
+
+.brand-concierge.bc-active .bc-close {
+  display: flex;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--light-color, #f0f0f0);
+  color: var(--text-color, #1b1b1b);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.brand-concierge.bc-active .bc-close:hover {
+  background-color: #dadada;
+}
+
+/* ---------- minimized → launcher only ---------- */
+.brand-concierge.bc-active.bc-minimized {
+  position: fixed;
+  inset: auto 24px 24px auto;
+  z-index: 1000;
+  height: auto;
+  display: block;
+  background: none;
+}
+
+.brand-concierge.bc-active.bc-minimized .bc-panel {
+  display: none;
+}
+
+.brand-concierge.bc-active.bc-minimized .bc-launcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 24px;
+  background-color: var(--va-primary, #005ea2);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 25%);
+}
+
+.brand-concierge.bc-active.bc-minimized .bc-launcher:hover {
+  background-color: var(--va-primary-darker, #162e51);
+}
+
+/* client UI tweaks */
+.brand-concierge-container .chat-interface .header-section {
+  display: none;
+}
+
+.brand-concierge-container .disclaimer-message {
+  display: none;
 }
