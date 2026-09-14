@@ -81,31 +81,37 @@ async function loadClient(block, mount) {
 export default function decorate(block) {
   block.textContent = '';
 
+  // Modal overlay: backdrop (.bc-panel) → white dialog (.bc-dialog) → close + mount.
   const panel = document.createElement('div');
   panel.className = 'bc-panel';
+  const dialog = document.createElement('div');
+  dialog.className = 'bc-dialog';
 
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'bc-close';
-  close.setAttribute('aria-label', 'Minimize chat');
+  close.setAttribute('aria-label', 'Close chat');
   close.textContent = '×'; // ×
 
   const mount = document.createElement('div');
   mount.id = MOUNT_ID;
   mount.className = 'brand-concierge-mount';
 
-  panel.append(close, mount);
+  dialog.append(close, mount);
+  panel.append(dialog);
 
-  const launcher = document.createElement('button');
-  launcher.type = 'button';
-  launcher.className = 'bc-launcher';
-  launcher.setAttribute('aria-label', 'Open chat');
-  launcher.textContent = 'Chat';
+  // Inline "continue" button that sits where the welcome form was, shown once a
+  // chat has started. Reopens the modal (the chat DOM stays mounted, so the
+  // conversation is preserved).
+  const reopen = document.createElement('button');
+  reopen.type = 'button';
+  reopen.className = 'bc-reopen';
+  reopen.textContent = 'Continue chat';
 
-  block.append(panel, launcher);
+  block.append(panel, reopen);
 
   close.addEventListener('click', () => block.classList.add('bc-minimized'));
-  launcher.addEventListener('click', () => block.classList.remove('bc-minimized'));
+  reopen.addEventListener('click', () => block.classList.remove('bc-minimized'));
 
   // Load only after consent (matches the rest of our martech).
   window.addEventListener('consent.update', ({ detail }) => {
