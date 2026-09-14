@@ -292,10 +292,70 @@ async function getAndApplyRenderDecisions() {
   });
 }
 
+// AEP Demo System enrichment. Every Experience Event must carry
+// _demosystem4.identification.core.ecid or it fails AEP schema validation and
+// never lands on the profile (this is separate from Target, which doesn't need
+// it). The ECID comes from the Web SDK identity (cached once resolved), and
+// onBeforeEventSend stamps it onto every outgoing event's XDM — page views and
+// interactions alike.
+let demoEcid = '';
+
+function enrichDemoSystem(content) {
+  /* eslint-disable no-underscore-dangle */
+  const xdm = content.xdm || (content.xdm = {});
+  const ds = xdm._demosystem4 || (xdm._demosystem4 = {});
+  const id = ds.identification || (ds.identification = {});
+  const core = id.core || (id.core = {});
+  if (!core.ecid && demoEcid) core.ecid = demoEcid;
+  /* eslint-enable no-underscore-dangle */
+}
+
+async function cacheEcid() {
+  try {
+    const { identity } = await window.webSdk('getIdentity', { namespaces: ['ECID'] });
+    if (identity && identity.ECID) demoEcid = identity.ECID;
+  } catch (e) {
+    // identity not available yet — events still carry the _demosystem4 shape
+  }
+}
+
 const alloyLoadedPromise = initWebSDK('./alloy.js', {
   datastreamId: '52111c1f-3550-417e-a968-2f17fb6ab876',
   orgId: '0E061E2D61F93F260A495FD6@AdobeOrg',
   defaultConsent: 'pending',
+  onBeforeEventSend: enrichDemoSystem,
+});
+
+// --- Interaction tracking (education-benefits clicks, etc.) ----------------
+// Adobe Tags/Launch is not on the page, so interactions are sent from here via
+// the direct Web SDK. Every content link click is reported as a linkClicks
+// event (the _demosystem4 ECID is added by onBeforeEventSend). Blocks can also
+// call window.trackInteraction(name, url) directly.
+let analyticsConsented = false;
+
+function trackInteraction(name, url) {
+  if (!analyticsConsented || !window.webSdk) return;
+  window.webSdk('sendEvent', {
+    xdm: {
+      eventType: 'web.webinteraction.linkClicks',
+      web: {
+        webInteraction: {
+          name: name || url || '',
+          URL: url || window.location.href,
+          linkClicks: { value: 1 },
+          type: 'other',
+        },
+      },
+    },
+  });
+}
+window.trackInteraction = trackInteraction;
+
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href]');
+  if (!a || !a.closest('main')) return; // content links only
+  const name = (a.textContent || a.getAttribute('aria-label') || a.href).trim();
+  trackInteraction(name, a.href);
 });
 
 // Bridge the site consent decision (dispatched by consent-check.js) to the
@@ -304,6 +364,7 @@ const alloyLoadedPromise = initWebSDK('./alloy.js', {
 let renderDecisionsRequested = false;
 window.addEventListener('consent.update', ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
+  analyticsConsented = !!detail?.consented;
   window.webSdk('setConsent', {
     consent: [{
       standard: 'Adobe',
@@ -313,10 +374,13 @@ window.addEventListener('consent.update', ({ detail }) => {
   });
   if (detail?.consented && !renderDecisionsRequested) {
     renderDecisionsRequested = true;
-    alloyLoadedPromise.then(() => getAndApplyRenderDecisions().catch((error) => {
-      // eslint-disable-next-line no-console
-      console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
-    }));
+    alloyLoadedPromise
+      .then(cacheEcid) // resolve the ECID first so events carry _demosystem4
+      .then(() => getAndApplyRenderDecisions())
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
+      });
   }
 });
 

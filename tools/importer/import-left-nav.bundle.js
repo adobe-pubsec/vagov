@@ -77,9 +77,19 @@ var CustomImportScript = (() => {
     }
   }
   function extractSection(document) {
-    const title = (document.querySelector("#sidebar_header, .left-side-nav-title h4, va-sidenav h4") || {}).textContent?.trim() || "";
+    const headerEl = document.querySelector("#sidebar_header, .left-side-nav-title h4, va-sidenav h4");
     const iconEl = document.querySelector(".left-side-nav-title va-icon[icon], va-icon.hub-icon[icon]");
-    const icon = iconEl ? iconEl.getAttribute("icon") : "";
+    let crumbTitle = "";
+    const bc = document.querySelector("va-breadcrumbs[breadcrumb-list]");
+    if (bc) {
+      try {
+        const list = JSON.parse(bc.getAttribute("breadcrumb-list"));
+        if (Array.isArray(list) && list.length >= 2) crumbTitle = (list[1].label || "").trim();
+      } catch (e) {
+      }
+    }
+    const title = headerEl && headerEl.textContent.trim() || crumbTitle || "Education and training";
+    const icon = iconEl && iconEl.getAttribute("icon") || "school";
     return { title, icon };
   }
   function createPageMetadata(main, document, section) {

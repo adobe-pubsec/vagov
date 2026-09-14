@@ -25,13 +25,25 @@ function runCleanup(hookName, element, payload) {
   }
 }
 
-// The hub section title/icon come from the source's side-nav header
-// (e.g. "Education and training" + the "school" hub icon).
+// The hub section title/icon. The side-nav header carries them when present;
+// otherwise fall back to the 2nd breadcrumb (the hub section), then a default.
 function extractSection(document) {
-  const title = (document.querySelector('#sidebar_header, .left-side-nav-title h4, va-sidenav h4')
-    || {}).textContent?.trim() || '';
+  const headerEl = document.querySelector('#sidebar_header, .left-side-nav-title h4, va-sidenav h4');
   const iconEl = document.querySelector('.left-side-nav-title va-icon[icon], va-icon.hub-icon[icon]');
-  const icon = iconEl ? iconEl.getAttribute('icon') : '';
+
+  let crumbTitle = '';
+  const bc = document.querySelector('va-breadcrumbs[breadcrumb-list]');
+  if (bc) {
+    try {
+      const list = JSON.parse(bc.getAttribute('breadcrumb-list'));
+      if (Array.isArray(list) && list.length >= 2) crumbTitle = (list[1].label || '').trim();
+    } catch (e) {
+      // ignore malformed breadcrumb data
+    }
+  }
+
+  const title = (headerEl && headerEl.textContent.trim()) || crumbTitle || 'Education and training';
+  const icon = (iconEl && iconEl.getAttribute('icon')) || 'school';
   return { title, icon };
 }
 
