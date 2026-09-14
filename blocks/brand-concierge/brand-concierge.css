@@ -9,3 +9,15 @@
 .brand-concierge-mount {
   height: 100%;
 }
+
+.brand-concierge-container {
+  .chat-interface {
+    .header-section {
+      display: none;
+    }
+  }
+
+  .disclaimer-message {
+    display: none;
+  }
+}
