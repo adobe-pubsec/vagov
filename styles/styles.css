@@ -133,7 +133,7 @@ p.button-wrapper {
 }
 
 a.button:any-link,
-button {
+button:not(.bc-prompt-suggestion-button) {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -161,7 +161,7 @@ button.button:disabled {
 }
 
 a.button.primary,
-button {
+button:not(.bc-prompt-suggestion-button) {
   border-color: var(--va-primary);
   background-color: var(--va-primary);
   color: var(--background-color);
