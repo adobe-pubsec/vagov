@@ -17,13 +17,13 @@ var CustomImportScript = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // tools/importer/import-left-nav.js
+  // import-left-nav.js
   var import_left_nav_exports = {};
   __export(import_left_nav_exports, {
     default: () => import_left_nav_default
   });
 
-  // tools/importer/transformers/vagov-cleanup.js
+  // transformers/vagov-cleanup.js
   var TransformHook = {
     beforeTransform: "beforeTransform",
     afterTransform: "afterTransform"
@@ -61,7 +61,26 @@ var CustomImportScript = (() => {
     }
   }
 
-  // tools/importer/import-left-nav.js
+  // parsers/boxed.js
+  function parse(element, { document, variant }) {
+    element.querySelectorAll("va-link").forEach((vl) => {
+      const a = document.createElement("a");
+      a.href = vl.getAttribute("href") || "#";
+      a.textContent = (vl.getAttribute("text") || vl.textContent || a.href).trim();
+      vl.replaceWith(a);
+    });
+    const nodes = Array.from(element.querySelectorAll("h1, h2, h3, h4, h5, h6, p, ul, ol"));
+    const cell = nodes.filter((node) => !nodes.some((other) => other !== node && other.contains(node)));
+    if (!cell.length) {
+      element.remove();
+      return;
+    }
+    const name = variant ? `boxed (${variant})` : "boxed";
+    const block = WebImporter.Blocks.createBlock(document, { name, cells: [[cell]] });
+    element.replaceWith(block);
+  }
+
+  // import-left-nav.js
   var PAGE_TEMPLATE = {
     name: "interior-left-nav",
     description: "VA.gov interior page with a section left-nav rail and a wide content column. Content is default content; the left nav is built by the template.",
@@ -117,8 +136,20 @@ var CustomImportScript = (() => {
         'nav[aria-label="Secondary"]'
       ]);
       runCleanup("afterTransform", main, payload);
-      const hr = document.createElement("hr");
-      main.appendChild(hr);
+      main.querySelectorAll(".feature").forEach((el) => {
+        try {
+          parse(el, { document, url, params, variant: "feature" });
+        } catch (e) {
+          console.error("boxed (feature) parse failed:", e);
+        }
+      });
+      main.querySelectorAll(".va-nav-linkslist--related").forEach((el) => {
+        try {
+          parse(el, { document, url, params });
+        } catch (e) {
+          console.error("boxed parse failed:", e);
+        }
+      });
       createPageMetadata(main, document, section);
       WebImporter.rules.transformBackgroundImages(main, document);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);

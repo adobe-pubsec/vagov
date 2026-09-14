@@ -148,8 +148,6 @@ export default {
     executeTransformers('afterTransform', main, payload);
 
     // 6. Built-in WebImporter rules + template-carrying page metadata
-    const hr = document.createElement('hr');
-    main.appendChild(hr);
     createPageMetadata(main, document);
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);

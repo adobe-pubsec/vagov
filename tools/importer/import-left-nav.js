@@ -8,6 +8,7 @@
 // the page metadata (template + the hub section title/icon).
 
 import cleanupTransformer from './transformers/vagov-cleanup.js';
+import boxedParser from './parsers/boxed.js';
 
 const PAGE_TEMPLATE = {
   name: 'interior-left-nav',
@@ -88,9 +89,24 @@ export default {
     ]);
     runCleanup('afterTransform', main, payload);
 
-    // 4. Metadata (template + section title/icon) and built-in image rules.
-    const hr = document.createElement('hr');
-    main.appendChild(hr);
+    // 4. Convert the callout boxes into `boxed` blocks: the blue ".feature" box
+    //    becomes boxed (feature); the gray related-links box is the default.
+    main.querySelectorAll('.feature').forEach((el) => {
+      try {
+        boxedParser(el, { document, url, params, variant: 'feature' });
+      } catch (e) {
+        console.error('boxed (feature) parse failed:', e);
+      }
+    });
+    main.querySelectorAll('.va-nav-linkslist--related').forEach((el) => {
+      try {
+        boxedParser(el, { document, url, params });
+      } catch (e) {
+        console.error('boxed parse failed:', e);
+      }
+    });
+
+    // 5. Metadata (template + section title/icon) and built-in image rules.
     createPageMetadata(main, document, section);
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);

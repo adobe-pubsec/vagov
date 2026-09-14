@@ -324,6 +324,13 @@ const alloyLoadedPromise = initWebSDK('./alloy.js', {
   orgId: '0E061E2D61F93F260A495FD6@AdobeOrg',
   defaultConsent: 'pending',
   onBeforeEventSend: enrichDemoSystem,
+  // Adobe Brand Concierge (beta): Web SDK handles identity/context; the client
+  // UI is loaded by the brand-concierge block. region: va7 | or2 | irl1.
+  conversation: {
+    region: 'va7',
+    stickyConversationSession: true,
+    collectSources: true,
+  },
 });
 
 // --- Interaction tracking (education-benefits clicks, etc.) ----------------

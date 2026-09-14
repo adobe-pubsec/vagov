@@ -298,8 +298,6 @@ var CustomImportScript = (() => {
         }
       });
       executeTransformers("afterTransform", main, payload);
-      const hr = document2.createElement("hr");
-      main.appendChild(hr);
       WebImporter.rules.createMetadata(main, document2);
       WebImporter.rules.transformBackgroundImages(main, document2);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
