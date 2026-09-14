@@ -25,7 +25,7 @@ window.styleConfiguration = {
     },
     "privacyNotice": {
       "title": "Privacy Notice",
-      "text": "Your use of this automated chatbot constitutes your consent that the personal information you provide in the chat session can be collected, used, disclosed, and retained by YourBrand and service providers acting on YourBrand's behalf in accordance with the YourBrand {Privacy Policy}. Please do not provide sensitive personal information (such as financial or health information) in the chatbot.",
+      "text": "Your use of this automated chatbot constitutes your consent that the personal information you provide in the chat session can be collected, used, disclosed, and retained by VA.gov and service providers acting on VA.gov's behalf in accordance with the VA.gov {Privacy Policy}. Please do not provide sensitive personal information (such as financial or health information) in the chatbot.",
       "links": [
         {
           "text": "Privacy Policy",
