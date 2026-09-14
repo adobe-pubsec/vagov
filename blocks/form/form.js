@@ -35,6 +35,7 @@ export default function decorate(block) {
   const button = document.createElement('button');
   button.type = 'submit';
   button.textContent = submitLabel;
+  button.className = 'button primary';
 
   form.append(label, input, button);
 

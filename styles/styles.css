@@ -132,11 +132,7 @@ p.button-wrapper {
   margin: 12px 0;
 }
 
-/* `button:not(.brand-concierge *)` excludes the Brand Concierge subtree (client
-   UI + our .bc-* controls), which manage their own buttons; the global bare-
-   element rule would otherwise repaint every third-party button as a VA CTA. */
-a.button:any-link,
-button:not(.brand-concierge *) {
+a.button:any-link, button.button {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -157,14 +153,12 @@ button:not(.brand-concierge *) {
   appearance: none;
 }
 
-a.button[aria-disabled="true"],
-button.button:disabled {
+a.button[aria-disabled="true"] {
   cursor: not-allowed;
   pointer-events: none;
 }
 
-a.button.primary,
-button:not(.brand-concierge *) {
+a.button.primary, button.button.primary {
   border-color: var(--va-primary);
   background-color: var(--va-primary);
   color: var(--background-color);
@@ -181,26 +175,20 @@ button.button.primary:focus-visible {
 
 a.button.primary[aria-disabled="true"],
 a.button.primary[aria-disabled="true"]:hover,
-a.button.primary[aria-disabled="true"]:focus-visible,
-button.button.primary:disabled,
-button.button.primary:disabled:hover,
-button.button.primary:disabled:focus-visible {
+a.button.primary[aria-disabled="true"]:focus-visible {
   background-color: var(--light-color);
   border-color: var(--light-color);
   color: var(--dark-color);
 }
 
-a.button.secondary,
-button.button.secondary {
+a.button.secondary {
   border-color: var(--text-color);
   background-color: transparent;
   color: var(--text-color);
 }
 
 a.button.secondary:hover,
-a.button.secondary:focus-visible,
-button.button.secondary:hover,
-button.button.secondary:focus-visible {
+a.button.secondary:focus-visible {
   border-color: var(--dark-color);
   background-color: var(--light-color);
   color: var(--dark-color);
@@ -208,37 +196,28 @@ button.button.secondary:focus-visible {
 
 a.button.secondary[aria-disabled="true"],
 a.button.secondary[aria-disabled="true"]:hover,
-a.button.secondary[aria-disabled="true"]:focus-visible,
-button.button.secondary:disabled,
-button.button.secondary:disabled:hover,
-button.button.secondary:disabled:focus-visible {
+a.button.secondary[aria-disabled="true"]:focus-visible {
   background-color: var(--light-color);
   border-color: var(--light-color);
   color: var(--dark-color);
 }
 
 /* high-impact call-to-action */
-a.button.accent,
-button.button.accent {
+a.button.accent {
   border-color: var(--link-color);
   background-color: var(--link-color);
   color: var(--background-color);
 }
 
 a.button.accent:hover,
-a.button.accent:focus-visible,
-button.button.accent:hover,
-button.button.accent:focus-visible {
+a.button.accent:focus-visible {
   border-color: var(--link-hover-color);
   background-color: var(--link-hover-color);
 }
 
 a.button.accent[aria-disabled="true"],
 a.button.accent[aria-disabled="true"]:hover,
-a.button.accent[aria-disabled="true"]:focus-visible,
-button.button.accent:disabled,
-button.button.accent:disabled:hover,
-button.button.accent:disabled:focus-visible {
+a.button.accent[aria-disabled="true"]:focus-visible {
   background-color: var(--light-color);
   border-color: var(--light-color);
   color: var(--dark-color);
