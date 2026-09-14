@@ -45,7 +45,6 @@
   overflow: hidden;
   border-radius: 8px;
   background-color: #fff;
-  box-shadow: 0 10px 40px rgb(0 0 0 / 30%);
 }
 
 .brand-concierge.bc-active .bc-close {
