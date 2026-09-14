@@ -1,0 +1,6 @@
+/* Mount point for the Brand Concierge client. The client typically renders its
+   own floating launcher; this keeps the mount out of the content flow so an
+   empty/unused mount doesn't add layout. Adjust if your client targets it. */
+.brand-concierge-mount:empty {
+  display: none;
+}
