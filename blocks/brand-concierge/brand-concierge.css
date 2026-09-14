@@ -14,6 +14,7 @@
 .brand-concierge .bc-dialog,
 .brand-concierge-mount {
   height: 100%;
+  box-shadow: none;
 }
 
 .brand-concierge .bc-close,
@@ -45,6 +46,7 @@
   overflow: hidden;
   border-radius: 8px;
   background-color: #fff;
+  box-shadow: none;
 }
 
 .brand-concierge.bc-active .bc-close {
