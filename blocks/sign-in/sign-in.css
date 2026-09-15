@@ -6,6 +6,19 @@
    The sign-in block renders the chooser inline (.sign-in-page) or the provider
    login, depending on the ?provider= query param. */
 
+/* Mandatory (non-dismissible) modal: blur + lock everything behind it so the
+   gated page can't be read or interacted with until the visitor signs in. The
+   modal overlay itself is excluded so it stays sharp and clickable. */
+body.sign-in-locked {
+  overflow: hidden;
+}
+
+body.sign-in-locked > *:not(.sign-in-modal) {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
 /* ---------- chooser modal (screenshot 1) ---------- */
 .sign-in-modal {
   position: fixed;

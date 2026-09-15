@@ -729,7 +729,8 @@ function enforceAuthGate() {
   if (getUser()) return;
   if (/^\/sign-in\/?/.test(window.location.pathname)) return; // never on sign-in itself
   const ret = window.location.pathname + window.location.search + window.location.hash;
-  openSignInModal(ret);
+  // Non-dismissible: the visitor must sign in to see an auth-gated page.
+  openSignInModal(ret, { dismissible: false });
 }
 
 /**
