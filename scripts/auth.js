@@ -111,10 +111,18 @@ function signInAs(record, providerKey) {
   return user;
 }
 
-/** Clear the session and announce sign-out. */
+/**
+ * Clear the session and reload so any rendered personal data is wiped. Strips the
+ * `?user=`/`?as=` test params from the URL first, otherwise the reload would just
+ * re-authenticate from them.
+ */
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
   dispatchAuth(null);
+  const url = new URL(window.location.href);
+  url.searchParams.delete('user');
+  url.searchParams.delete('as');
+  window.location.replace(url.toString());
 }
 
 /**
