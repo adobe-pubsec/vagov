@@ -1,0 +1,71 @@
+/* Promo banner — full-bleed green band. Breaks out of the section's centered
+   max-width container to span the viewport edge-to-edge, then re-centers its
+   inner content. */
+
+.promo-banner {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background-color: #4c8b2b;
+  color: #fff;
+}
+
+.promo-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+}
+
+/* image in a circle with a green ring that breaks out above the (shorter) band */
+.promo-banner-media {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 150px;
+  height: 150px;
+  margin: -40px 0; /* poke out both top and bottom; band stays short */
+  border: 6px solid #4c8b2b;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.promo-banner-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.promo-banner-content {
+  font-size: 1.375rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* CTA link + trailing right-angle icon */
+.promo-banner-content a:any-link,
+.promo-banner a.promo-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.promo-banner-arrow {
+  width: 0.7em;
+  height: 0.7em;
+  background-color: currentcolor;
+  mask: url('/icons/arrow.svg') center / contain no-repeat;
+}
+
+@media (width < 700px) {
+  .promo-banner-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
