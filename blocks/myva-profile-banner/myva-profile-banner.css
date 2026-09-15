@@ -1,0 +1,66 @@
+/* My VA profile banner — full-bleed blue band with the user's seal + identity. */
+
+.myva-profile-banner {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background-color: #046b98;
+  color: #fff;
+}
+
+.myva-profile-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+.myva-profile-seal {
+  flex: 0 0 auto;
+}
+
+.myva-profile-seal img {
+  display: block;
+  width: 64px;
+  height: 64px;
+}
+
+.myva-profile-info {
+  min-width: 0;
+}
+
+.myva-profile-name {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.myva-profile-branch {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+
+.myva-profile-rating {
+  margin: 4px 0 0;
+}
+
+.myva-profile-rating-link:any-link {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.myva-profile-rating-link::after {
+  content: '\00BB'; /* » */
+  margin-left: 6px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+@media (width < 600px) {
+  .myva-profile-name {
+    font-size: 1.3rem;
+  }
+}

@@ -15,12 +15,13 @@ import {
   readBlockConfig,
   toClassName,
   toCamelCase,
+  getMetadata,
 } from './aem.js';
 import './datalayer.js';
 // auth.js lazily imports the fragment block (for the sign-in modal), which imports
 // this module — a runtime-safe cycle broken by that dynamic import.
 // eslint-disable-next-line import/no-cycle
-import { getUser } from './auth.js';
+import { getUser, openSignInModal, establishTestUserFromParam } from './auth.js';
 
 if (window.trustedTypes && window.trustedTypes.createPolicy) {
   const innerTT = window.trustedTypes.createPolicy('tt-inner', {
@@ -717,6 +718,21 @@ function observeInjectedBlocks(main) {
 }
 
 /**
+ * Auth-gated pages: if the page sets metadata `auth` (true/yes/1) and no one is
+ * signed in, automatically open the sign-in chooser modal. After signing in the
+ * visitor is returned to this page (authenticated). The modal is still
+ * dismissible — content decides how much to reveal to a signed-out visitor.
+ */
+function enforceAuthGate() {
+  const flag = (getMetadata('auth') || '').trim().toLowerCase();
+  if (!['true', 'yes', '1'].includes(flag)) return;
+  if (getUser()) return;
+  if (/^\/sign-in\/?/.test(window.location.pathname)) return; // never on sign-in itself
+  const ret = window.location.pathname + window.location.search + window.location.hash;
+  openSignInModal(ret);
+}
+
+/**
  * Reads the persisted consent decision synchronously (localStorage or the
  * ?consent= override, matching consent-check.js). Lets us release the Web SDK and
  * request Target/personalization decisions eagerly for returning, already-
@@ -742,6 +758,9 @@ function consentAlreadyGranted() {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  // Demo/test aid: `?user=<id|email>` signs in as a sheet user before anything
+  // decorates, so auth-gated UI renders without the login flow. No-op otherwise.
+  await establishTestUserFromParam();
   // For a returning, already-consented visitor, kick off the consented Web SDK
   // path now (setConsent + render decisions) so personalization lands before the
   // hero renders. The renderDecisionsRequested guard in the consent.update
@@ -782,6 +801,9 @@ async function loadLazy(doc) {
   // Now that the page's own blocks are decorated, watch for blocks injected
   // later (e.g. by a Target activity) and decorate them too.
   observeInjectedBlocks(main);
+
+  // Auth-gated pages: prompt sign-in when the visitor isn't authenticated.
+  enforceAuthGate();
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;

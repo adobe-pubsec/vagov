@@ -583,6 +583,44 @@ body.interior-left-nav .leftnav-rail {
   }
 }
 
+/* My VA */
+
+body.myva main {
+  .section {
+    margin-bottom: 60px;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+    
+    li {
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--va-primary);
+      padding-bottom: 16px;
+
+      .icon {
+        margin-right: 8px;
+        width: 30px;
+        height: 30px;
+        background-color: var(--va-primary);
+        border-radius: 50%;
+        padding: 4px;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+
+        img {
+          filter: brightness(0) invert(1);
+          width: 80%;
+          height: 80%;
+        }
+      }
+    }
+  }
+}
+
 /* section metadata */
 main .section.light,
 main .section.highlight {
