@@ -60,16 +60,34 @@ function dispatchAuth(user) {
 // Fetch + cache the demo user sheet, then look a row up by email (the login
 // handle). Returns null if the sheet is unavailable or the email isn't found.
 let usersPromise;
-async function findUserByEmail(email) {
+// The users sheet is a multi-sheet workbook (default `data` tab + one per user).
+// A single-sheet fetch returns rows under `.data`; a multi-sheet fetch nests the
+// default tab under `.data.data`. Handle both.
+function extractDefaultRows(json) {
+  if (Array.isArray(json.data)) return json.data;
+  if (json.data && Array.isArray(json.data.data)) return json.data.data;
+  return [];
+}
+function loadDefaultUsers() {
   if (!usersPromise) {
     usersPromise = fetch(USERS_SHEET_PATH)
-      .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((j) => j.data || [])
+      .then((r) => (r.ok ? r.json() : {}))
+      .then(extractDefaultRows)
       .catch(() => []);
   }
-  const rows = await usersPromise;
+  return usersPromise;
+}
+
+async function findUserByEmail(email) {
+  const rows = await loadDefaultUsers();
   const target = (email || '').trim().toLowerCase();
   return rows.find((u) => (u.email || '').trim().toLowerCase() === target) || null;
+}
+
+/** Look a user up by id (sub-…), returning their full default-sheet record. */
+export async function findUserById(id) {
+  const rows = await loadDefaultUsers();
+  return rows.find((u) => (u.id || '') === id) || null;
 }
 
 /**
@@ -97,6 +115,23 @@ function signInAs(record, providerKey) {
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
   dispatchAuth(null);
+}
+
+/**
+ * Demo/test aid: `?user=<id|email>` (or `?as=`) signs in as that sheet user
+ * without the login flow, so auth-only UI can be tested directly. Returns the
+ * user (or null if no param / no match) and does nothing when the param is
+ * absent, so there's no cost on normal loads. Persists like a real sign-in —
+ * clear it with Sign out.
+ */
+export async function establishTestUserFromParam() {
+  const params = new URLSearchParams(window.location.search);
+  const key = (params.get('user') || params.get('as') || '').trim().toLowerCase();
+  if (!key) return null;
+  const rows = await loadDefaultUsers();
+  const rec = rows.find((u) => (u.id || '').toLowerCase() === key
+    || (u.email || '').trim().toLowerCase() === key);
+  return rec ? signInAs(rec, 'idme') : null;
 }
 
 // ---- small DOM helpers -----------------------------------------------------
