@@ -289,8 +289,14 @@ async function loadChooserContent(ret) {
   return buildChooser(ret);
 }
 
-/** Open the provider chooser as a modal over the current page (step 1). */
-export function openSignInModal(ret) {
+/**
+ * Open the provider chooser as a modal over the current page (step 1).
+ * @param {string} ret return target after sign-in
+ * @param {{ dismissible?: boolean }} [opts] when dismissible is false (auth-gated
+ *   pages) the close button is omitted and backdrop-click / Esc won't close it —
+ *   the visitor must sign in.
+ */
+export function openSignInModal(ret, { dismissible = true } = {}) {
   // The modal opens from the header on any page, but the styles live with the
   // sign-in block (only auto-loaded where that block is authored) — load them.
   loadCSS(`${window.hlx.codeBasePath}/blocks/sign-in/sign-in.css`);
@@ -300,28 +306,37 @@ export function openSignInModal(ret) {
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');
   dialog.setAttribute('aria-label', 'Sign in or create an account');
-
-  const close = el('button', 'sign-in-modal-close');
-  close.type = 'button';
-  close.setAttribute('aria-label', 'Close');
-  close.textContent = '×';
+  dialog.tabIndex = -1;
 
   const controller = new AbortController();
   const remove = () => {
     overlay.remove();
     controller.abort(); // detaches the keydown listener below
+    document.body.classList.remove('sign-in-locked');
   };
 
   const bodyHost = el('div', 'sign-in-modal-body');
-  dialog.append(close, bodyHost);
+
+  if (dismissible) {
+    const close = el('button', 'sign-in-modal-close');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '×';
+    close.addEventListener('click', remove);
+    dialog.append(close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) remove(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') remove();
+    }, { signal: controller.signal });
+  }
+
+  dialog.append(bodyHost);
   overlay.append(dialog);
-  close.addEventListener('click', remove);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) remove(); });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') remove();
-  }, { signal: controller.signal });
   document.body.append(overlay);
-  close.focus();
+  // Mandatory modal: blur + lock the page behind it so gated content isn't
+  // readable or interactive until the visitor signs in.
+  if (!dismissible) document.body.classList.add('sign-in-locked');
+  dialog.focus();
 
   loadChooserContent(ret).then((content) => bodyHost.append(content));
 }
