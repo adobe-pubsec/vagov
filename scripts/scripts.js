@@ -663,11 +663,38 @@ function decorateLeftNavTemplate(main) {
 }
 
 /**
+ * Reads the persisted consent decision synchronously (localStorage or the
+ * ?consent= override, matching consent-check.js). Lets us release the Web SDK and
+ * request Target/personalization decisions eagerly for returning, already-
+ * consented visitors — so the decision is in-flight before the hero paints,
+ * instead of waiting for the late consent banner in loadDelayed(). This closes
+ * the Target flicker (FOOC) window without hiding any content, so no CWV impact.
+ * First-time visitors stay gated (pending) until they choose.
+ * @returns {boolean}
+ */
+function consentAlreadyGranted() {
+  try {
+    const param = new URLSearchParams(window.location.search).get('consent');
+    if (param !== null) return ['accept', 'true', '1', 'yes'].includes(param.toLowerCase());
+    return localStorage.getItem('va-consent') === 'accept';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  // For a returning, already-consented visitor, kick off the consented Web SDK
+  // path now (setConsent + render decisions) so personalization lands before the
+  // hero renders. The renderDecisionsRequested guard in the consent.update
+  // handler keeps the later banner dispatch from re-fetching.
+  if (consentAlreadyGranted()) {
+    window.dispatchEvent(new CustomEvent('consent.update', { detail: { consented: true } }));
+  }
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
