@@ -683,11 +683,23 @@ function isUndecoratedBlock(el) {
   return !el.closest('[data-block-status]');
 }
 
+function decorateIfInjectedBlock(el) {
+  if (!isUndecoratedBlock(el)) return;
+  decorateBlock(el);
+  loadBlock(el);
+}
+
 /**
  * Decorates blocks that appear in `main` after initial load — e.g. a promo-banner
  * inserted by a Target activity — so they get the same decorate()/CSS treatment
  * as authored blocks. Started only after initial decoration completes, so it
  * never races or double-decorates the page's own blocks.
+ *
+ * The observer is attached first, then we sweep any blocks already present: with
+ * eager consent the Target decision can insert its block BEFORE this runs (fast/
+ * cached loads), so a live observer alone would intermittently miss it. The sweep
+ * catches those; the observer catches everything injected afterward. Both paths
+ * are idempotent (the data-block-status guard skips already-decorated blocks).
  * @param {Element} main
  */
 function observeInjectedBlocks(main) {
@@ -695,15 +707,13 @@ function observeInjectedBlocks(main) {
     mutations.forEach((m) => {
       m.addedNodes.forEach((node) => {
         if (!(node instanceof Element)) return;
-        [node, ...node.querySelectorAll('[class]')].forEach((el) => {
-          if (!isUndecoratedBlock(el)) return;
-          decorateBlock(el);
-          loadBlock(el);
-        });
+        decorateIfInjectedBlock(node);
+        node.querySelectorAll('[class]').forEach(decorateIfInjectedBlock);
       });
     });
   });
   observer.observe(main, { childList: true, subtree: true });
+  main.querySelectorAll('[class]').forEach(decorateIfInjectedBlock);
 }
 
 /**
