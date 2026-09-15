@@ -662,6 +662,50 @@ function decorateLeftNavTemplate(main) {
   main.prepend(buildBreadcrumbs());
 }
 
+// Classes that carry a leading token but are NOT blocks — don't treat as blocks.
+const NON_BLOCK_CLASSES = new Set([
+  'block', 'section', 'default-content-wrapper', 'button-container', 'icon', 'cta-arrow',
+]);
+
+/**
+ * Is this a block that was injected post-load (e.g. by a Target activity) and
+ * hasn't been decorated yet? A block's first class is its name; skip structural
+ * wrappers and anything already inside a decorated block (which covers a block's
+ * own generated children, so we never recurse into them).
+ * @param {Element} el
+ */
+function isUndecoratedBlock(el) {
+  if (!(el instanceof Element) || el.dataset.blockStatus || el.classList.contains('block')) return false;
+  const name = el.classList[0];
+  if (!name || NON_BLOCK_CLASSES.has(name) || name.endsWith('-wrapper') || name.endsWith('-container')) {
+    return false;
+  }
+  return !el.closest('[data-block-status]');
+}
+
+/**
+ * Decorates blocks that appear in `main` after initial load — e.g. a promo-banner
+ * inserted by a Target activity — so they get the same decorate()/CSS treatment
+ * as authored blocks. Started only after initial decoration completes, so it
+ * never races or double-decorates the page's own blocks.
+ * @param {Element} main
+ */
+function observeInjectedBlocks(main) {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((m) => {
+      m.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        [node, ...node.querySelectorAll('[class]')].forEach((el) => {
+          if (!isUndecoratedBlock(el)) return;
+          decorateBlock(el);
+          loadBlock(el);
+        });
+      });
+    });
+  });
+  observer.observe(main, { childList: true, subtree: true });
+}
+
 /**
  * Reads the persisted consent decision synchronously (localStorage or the
  * ?consent= override, matching consent-check.js). Lets us release the Web SDK and
@@ -724,6 +768,10 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+
+  // Now that the page's own blocks are decorated, watch for blocks injected
+  // later (e.g. by a Target activity) and decorate them too.
+  observeInjectedBlocks(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
