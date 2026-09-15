@@ -142,6 +142,85 @@ header nav#nav {
   text-decoration: none;
 }
 
+/* signed-in account control (replaces the Sign in button) */
+.va-account {
+  position: relative;
+}
+
+.va-account-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  background-color: transparent;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.va-account-toggle:hover {
+  background-color: rgb(255 255 255 / 12%);
+}
+
+.va-account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: var(--va-primary-darker, #162e51);
+  font-size: 13px;
+}
+
+.va-account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  min-width: 240px;
+  padding: 16px;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #1b1b1b;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
+}
+
+.va-account-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.va-account-email,
+.va-account-via {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #565c65;
+}
+
+.va-account-signout {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 2px solid var(--va-primary, #005ea2);
+  border-radius: 5px;
+  background-color: #fff;
+  color: var(--va-primary, #005ea2);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.va-account-signout:hover {
+  background-color: var(--va-primary, #005ea2);
+  color: #fff;
+}
+
 .va-search-toggle {
   display: inline-flex;
   align-items: center;

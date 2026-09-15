@@ -1,0 +1,421 @@
+/* Sign-in flow. Views rendered by scripts/auth.js:
+   - .sign-in-modal   : the VA-branded chooser modal (content from the authored
+                        /sign-in/modal fragment, or the built-in fallback)
+   - .sign-in-idp     : the provider login page — a full-screen takeover standing
+                        in for the ID.me / Login.gov redirect
+   The sign-in block renders the chooser inline (.sign-in-page) or the provider
+   login, depending on the ?provider= query param. */
+
+/* ---------- chooser modal (screenshot 1) ---------- */
+.sign-in-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+  padding: 48px 16px;
+  background-color: rgb(11 22 40 / 65%);
+}
+
+.sign-in-modal-dialog {
+  position: relative;
+  width: min(600px, 100%);
+  padding: 40px 48px 48px;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.sign-in-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #a9aeb1;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #1b1b1b;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sign-in-modal-close:focus-visible {
+  outline: 4px solid #face00;
+  outline-offset: 0;
+}
+
+/* chooser content (shared by modal + inline page) */
+.sign-in-chooser-logo {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dfe1e2;
+}
+
+.sign-in-chooser-logo img {
+  height: 42px;
+  width: auto;
+}
+
+.sign-in-chooser-heading {
+  margin: 0 0 20px;
+  font-size: 2rem;
+}
+
+.sign-in-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+/* provider buttons (both <button> fallback and enhanced authored <a>) */
+.sign-in-provider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sign-in-provider-idme,
+.sign-in-provider-idme:any-link {
+  background-color: #0f7d3d;
+  color: #fff;
+}
+
+.sign-in-provider-idme:hover {
+  background-color: #0b6531;
+  color: #fff;
+  text-decoration: none;
+}
+
+.sign-in-provider-logingov,
+.sign-in-provider-logingov:any-link {
+  background-color: #e21c3d;
+  color: #fff;
+}
+
+.sign-in-provider-logingov:hover {
+  background-color: #c01230;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* wordmarks (built-in chooser; authored links just show their text) */
+.sign-in-mark-idme {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.sign-in-mark-me {
+  font-weight: 400;
+}
+
+.sign-in-mark-logingov {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sign-in-mark-shield {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+.sign-in-mark-word {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.sign-in-learn:any-link {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: var(--link-color, #005ea2);
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.sign-in-help-heading {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+}
+
+.sign-in-help-links {
+  margin: 0 0 20px;
+  padding-left: 20px;
+}
+
+.sign-in-help-links a:any-link {
+  color: var(--link-color, #005ea2);
+  text-decoration: underline;
+}
+
+.sign-in-help-phone {
+  margin: 0;
+}
+
+/* inline page variant (direct /sign-in/ visit, no ?provider=) */
+.sign-in-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ---------- authored chooser content (from /sign-in/modal fragment) ----------
+   Styled by structure so the authored document needs no special classes: a logo
+   image, an H1, provider links (auto-branded), a "learn" link, an H2 + list of
+   help links, and a phone paragraph. Provider buttons keep .sign-in-provider-*. */
+.sign-in-chooser-authored :is(.section, .default-content-wrapper) {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+.sign-in-chooser-authored p:has(img) {
+  margin: 0 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dfe1e2;
+}
+
+.sign-in-chooser-authored img {
+  height: 42px;
+  width: auto;
+}
+
+.sign-in-chooser-authored h1 {
+  margin: 0 0 20px;
+  font-size: 2rem;
+}
+
+.sign-in-chooser-authored h2 {
+  margin: 8px 0;
+  font-size: 1.5rem;
+}
+
+.sign-in-chooser-authored .sign-in-provider {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0;
+}
+
+.sign-in-chooser-authored ul {
+  padding-left: 20px;
+}
+
+/* ---------- provider login page / takeover (screenshot 2) ---------- */
+.sign-in-idp {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background-color: #f4f4f5;
+}
+
+.sign-in-idp-top {
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px;
+  background-color: #fff;
+}
+
+.sign-in-idp-cobrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sign-in-idp-cobrand img {
+  height: 44px;
+  width: auto;
+}
+
+.sign-in-idp-plus {
+  color: #71767a;
+  font-size: 1.5rem;
+}
+
+/* ID.me co-brand wordmark: dark "ID", green ".me" */
+.sign-in-idp-providermark.sign-in-mark-idme {
+  font-size: 2rem;
+}
+
+.sign-in-idp-idme .sign-in-mark-id {
+  color: #12233c;
+}
+
+.sign-in-idp-idme .sign-in-mark-me {
+  color: #23a24d;
+}
+
+.sign-in-idp-logingov .sign-in-idp-providermark {
+  font-size: 1.5rem;
+  color: #1a4480;
+}
+
+.sign-in-idp-logingov .sign-in-mark-shield {
+  filter: none;
+}
+
+.sign-in-idp-body {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.sign-in-idp-card {
+  width: min(470px, 100%);
+  padding: 40px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
+  text-align: center;
+}
+
+.sign-in-idp-heading {
+  margin: 0 0 28px;
+  font-size: 1.6rem;
+}
+
+.sign-in-idp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.sign-in-idp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sign-in-idp-field input {
+  padding: 12px;
+  border: 1px solid #757575;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.sign-in-idp-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sign-in-idp-remember input {
+  width: 18px;
+  height: 18px;
+}
+
+.sign-in-idp-submit {
+  margin-top: 4px;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+}
+
+.sign-in-idp-idme .sign-in-idp-submit {
+  background-color: #2672de;
+}
+
+.sign-in-idp-logingov .sign-in-idp-submit {
+  background-color: #1a4480;
+}
+
+.sign-in-idp-idme .sign-in-idp-submit:hover {
+  background-color: #175bbb;
+}
+
+.sign-in-idp-logingov .sign-in-idp-submit:hover {
+  background-color: #162e51;
+}
+
+.sign-in-idp-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 4px solid #b50909;
+  background-color: #f8dfe2;
+  color: #b50909;
+  font-size: 0.9rem;
+}
+
+.sign-in-idp-alt {
+  margin: 24px 0 0;
+  font-size: 0.95rem;
+}
+
+.sign-in-idp-alt a:any-link,
+.sign-in-idp-legal a:any-link {
+  color: var(--link-color, #005ea2);
+  text-decoration: underline;
+}
+
+.sign-in-idp-cancel {
+  display: block;
+  margin: 20px auto 0;
+  border: 0;
+  background: none;
+  color: var(--link-color, #005ea2);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sign-in-idp-footer {
+  padding: 24px 16px 40px;
+  text-align: center;
+  color: #3d4551;
+}
+
+.sign-in-idp-lang {
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.sign-in-idp-lang::before {
+  content: '\2304';
+  margin-right: 6px;
+}
+
+.sign-in-idp-legal {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.sign-in-idp-sep {
+  margin: 0 10px;
+  color: #a9aeb1;
+}
+
+/* authored link colour — placed last so its :not() specificity is non-descending */
+.sign-in-chooser-authored a:not(.sign-in-provider):any-link {
+  color: var(--link-color, #005ea2);
+  text-decoration: underline;
+}

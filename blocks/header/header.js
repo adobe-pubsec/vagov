@@ -2,6 +2,8 @@
 // Content-first: all labels/links/images come from nav.plain.html.
 // This module reads that DOM and builds the interactive header generically.
 
+import { decorateAuthControls } from '../../scripts/auth.js';
+
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
 /** Fetch the nav fragment. */
@@ -286,6 +288,10 @@ export default async function decorate(block) {
       });
     }
   }
+  // Swap the authored "Sign in" link for the auth control (modal chooser when
+  // signed out, account menu when signed in).
+  decorateAuthControls(tools);
+
   brandInner.append(tools);
 
   // search panel (built in JS, not in the fragment)

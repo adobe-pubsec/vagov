@@ -17,6 +17,10 @@ import {
   toCamelCase,
 } from './aem.js';
 import './datalayer.js';
+// auth.js lazily imports the fragment block (for the sign-in modal), which imports
+// this module — a runtime-safe cycle broken by that dynamic import.
+// eslint-disable-next-line import/no-cycle
+import { getUser } from './auth.js';
 
 if (window.trustedTypes && window.trustedTypes.createPolicy) {
   const innerTT = window.trustedTypes.createPolicy('tt-inner', {
@@ -300,6 +304,14 @@ async function getAndApplyRenderDecisions() {
 // interactions alike.
 let demoEcid = '';
 
+// Identity namespace for a signed-in user's Demo System User ID — the stable GUID
+// (from /sign-in/users.json) that already exists on their AEP profile. Sent via
+// identityMap on login so AEP recognizes the browser as that existing profile and
+// stitches this ECID onto it. Namespace symbol confirmed in AEP: "Demo System -
+// User ID" → `userId`. (This is the authoritative stitch mechanism; no XDM field
+// stamping needed — that's ECID-only below, a separate demo-system requirement.)
+const DEMO_USER_ID_NAMESPACE = 'userId';
+
 function enrichDemoSystem(content) {
   /* eslint-disable no-underscore-dangle */
   const xdm = content.xdm || (content.xdm = {});
@@ -358,6 +370,54 @@ function trackInteraction(name, url) {
 }
 window.trackInteraction = trackInteraction;
 
+// Bridge the mock authentication (auth.js dispatches `auth.update`) to the
+// martech stack. The data layer always reflects the signed-in state; once
+// consented, the authenticated identity is attached to the Web SDK — the Demo
+// System User ID as the PRIMARY identity (so AEP recognizes the existing profile
+// and stitches this browser's ECID onto it), with email as a secondary identity.
+function reflectAuthInDataLayer(user) {
+  // merge=false so the `user` object is replaced wholesale (a deep merge would
+  // leave a stale id/provider behind after sign-out) while `page` is preserved.
+  window.updateDataLayer?.({
+    user: user
+      ? {
+        authenticated: true,
+        id: user.id,
+        provider: user.provider,
+        demoSystemUserId: user.demoSystemUserId,
+      }
+      : { authenticated: false },
+  }, false);
+}
+
+function sendAuthenticatedIdentity(user) {
+  if (!analyticsConsented || !window.webSdk || !user) return;
+  const identityMap = {};
+  if (user.demoSystemUserId) {
+    identityMap[DEMO_USER_ID_NAMESPACE] = [
+      { id: user.demoSystemUserId, primary: true, authenticatedState: 'authenticated' },
+    ];
+  }
+  if (user.email) {
+    identityMap.Email = [
+      { id: user.email, primary: !user.demoSystemUserId, authenticatedState: 'authenticated' },
+    ];
+  }
+  window.webSdk('sendEvent', {
+    xdm: {
+      eventType: 'web.webinteraction.linkClicks',
+      identityMap,
+      web: {
+        webInteraction: {
+          name: `sign-in:${user.provider}`,
+          linkClicks: { value: 1 },
+          type: 'other',
+        },
+      },
+    },
+  });
+}
+
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a[href]');
   if (!a || !a.closest('main')) return; // content links only
@@ -383,12 +443,22 @@ window.addEventListener('consent.update', ({ detail }) => {
     renderDecisionsRequested = true;
     alloyLoadedPromise
       .then(cacheEcid) // resolve the ECID first so events carry _demosystem4
+      .then(() => sendAuthenticatedIdentity(getUser())) // link a pre-existing session
       .then(() => getAndApplyRenderDecisions())
       .catch((error) => {
         // eslint-disable-next-line no-console
         console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
       });
   }
+});
+
+// Reflect any existing session on load (pre-consent: data layer only), then keep
+// both the data layer and Web SDK identity in step with sign-in / sign-out.
+reflectAuthInDataLayer(getUser());
+window.addEventListener('auth.update', ({ detail }) => {
+  const user = detail?.user || null;
+  reflectAuthInDataLayer(user);
+  if (user) sendAuthenticatedIdentity(user);
 });
 
 /**
