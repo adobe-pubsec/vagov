@@ -3,7 +3,7 @@
 // a primary link-column grid, a language-assistance row, the VA.gov logo,
 // and a bottom legal/utility link row.
 
-import { createOptimizedPicture } from '../../scripts/aem.js';
+import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
 
 /** Fetch the footer fragment. */
 async function fetchFooter() {
@@ -43,6 +43,9 @@ export default async function fetchAndDecorate(block) {
 
   const sections = [...frag.children].filter((c) => c.tagName === 'DIV');
 
+  // Page metadata `footer-image-banner: false` suppresses the promo banner.
+  const showFooterBanner = getMetadata('footer-image-banner').toLowerCase() !== 'false';
+
   // Full-bleed promo banner (global, above the navy footer body).
   let bannerWrap = null;
 
@@ -58,6 +61,7 @@ export default async function fetchAndDecorate(block) {
 
   sections.forEach((section) => {
     if (isBannerImage(section)) {
+      if (!showFooterBanner) return; // metadata opts out of the promo banner
       bannerWrap = document.createElement('div');
       bannerWrap.className = 'va-footer-banner';
       const img = section.querySelector('img');
