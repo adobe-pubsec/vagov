@@ -258,6 +258,21 @@ function onDecoratedElement(fn) {
   observer.observe(document.querySelector('body'), { childList: true });
 }
 
+const TARGET_AUDIENCE_SOURCE_PATH = '/education/about-gi-bill-benefits';
+const TARGET_AUDIENCE_PROFILE_KEY = 'profile.interestInGiBill';
+
+function getTargetProfileData() {
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+  if (pathname !== TARGET_AUDIENCE_SOURCE_PATH) return undefined;
+  return {
+    __adobe: {
+      target: {
+        [TARGET_AUDIENCE_PROFILE_KEY]: 'true',
+      },
+    },
+  };
+}
+
 async function getAndApplyRenderDecisions() {
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
@@ -271,6 +286,7 @@ async function getAndApplyRenderDecisions() {
         webPageDetails: { name: document.title, viewName: window.dataLayer?.page?.name },
       },
     },
+    data: getTargetProfileData(),
   });
   const { propositions } = response;
   onDecoratedElement(async () => {
