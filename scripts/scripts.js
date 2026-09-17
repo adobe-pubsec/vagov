@@ -263,90 +263,14 @@ function getTargetProfileData() {
   };
 }
 
-function parseDomActionContent(content) {
-  const template = document.createElement('template');
-  template.innerHTML = content.trim();
-  return template.content;
+function toCssSelector(selector) {
+  return selector.replace(/(\.\S+)?:eq\((\d+)\)/g, (_, clss, i) => `:nth-child(${Number(i) + 1}${clss ? ` of ${clss}` : ''})`);
 }
 
-function markInsertedNodes(fragment, itemId) {
-  [...fragment.children].forEach((el) => {
-    el.dataset.targetPropositionId = itemId;
-  });
-}
-
-function wasDomActionApplied(item) {
-  if (!item?.id || item.schema !== 'https://ns.adobe.com/personalization/dom-action') return false;
-  return !!document.querySelector(`[data-target-proposition-id="${item.id}"]`);
-}
-
-function applyDomActionFallback(item) {
-  if (item.schema !== 'https://ns.adobe.com/personalization/dom-action') return;
-  const { data } = item;
-  if (!data || typeof data.content !== 'string') return;
-  if (!['insertAfter', 'insertBefore', 'appendHtml', 'prependHtml'].includes(data.type)) return;
-  if (wasDomActionApplied(item)) return;
-
-  const target = document.querySelector(data.selector);
-  if (!target) {
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] fallback target missing', { itemId: item.id, selector: data.selector });
-    return;
-  }
-
-  const fragment = parseDomActionContent(data.content);
-  markInsertedNodes(fragment, item.id);
-  // eslint-disable-next-line no-console
-  console.log('[Target debug] fallback inserting dom-action', {
-    itemId: item.id,
-    type: data.type,
-    selector: data.selector,
-  });
-
-  if (data.type === 'insertAfter') {
-    target.after(fragment);
-  } else if (data.type === 'insertBefore') {
-    target.before(fragment);
-  } else if (data.type === 'appendHtml') {
-    target.append(fragment);
-  } else if (data.type === 'prependHtml') {
-    target.prepend(fragment);
-  }
-}
-
-function pruneAppliedDomActions(items) {
-  return items.filter((item) => {
-    if (item.schema !== 'https://ns.adobe.com/personalization/dom-action') return true;
-    if (wasDomActionApplied(item)) return false;
-    return !document.querySelector(item.data?.selector || '');
-  });
-}
-
-async function applyPendingPropositions(propositions) {
-  const applicable = propositions.filter((p) => p.items.length > 0);
-  if (applicable.length === 0) return;
-  // eslint-disable-next-line no-console
-  console.log('[Target debug] applying propositions', applicable.map((p) => ({
-    id: p.id,
-    items: p.items.map((item) => ({
-      id: item.id,
-      schema: item.schema,
-      type: item.data?.type,
-      selector: item.data?.selector,
-    })),
-  })));
-  try {
-    await window.webSdk('applyPropositions', { propositions: applicable });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('[webSdk] applyPropositions failed, attempting local dom-action fallback:', error);
-  }
-  applicable.forEach((p) => {
-    p.items.forEach(applyDomActionFallback);
-    p.items = pruneAppliedDomActions(p.items);
-  });
-  // eslint-disable-next-line no-console
-  console.log('[Target debug] post-apply markers', document.querySelectorAll('[data-target-proposition-id]').length);
+async function getElementForProposition(proposition) {
+  const selector = proposition.data.prehidingSelector
+    || toCssSelector(proposition.data.selector);
+  return document.querySelector(selector);
 }
 
 async function getAndApplyRenderDecisions() {
@@ -365,8 +289,19 @@ async function getAndApplyRenderDecisions() {
     data: getTargetProfileData(),
   });
   const { propositions } = response;
-  await applyPendingPropositions(propositions);
-  onDecoratedElement(() => applyPendingPropositions(propositions));
+  onDecoratedElement(async () => {
+    const applicable = propositions.filter((p) => p.items.length > 0);
+    if (applicable.length === 0) return;
+    await window.webSdk('applyPropositions', { propositions: applicable });
+    // Drop dom-action items once applied so re-runs don't re-apply them.
+    await Promise.all(applicable.map(async (p) => {
+      const keepFlags = await Promise.all(p.items.map(async (i) => (
+        i.schema !== 'https://ns.adobe.com/personalization/dom-action'
+        || !(await getElementForProposition(i))
+      )));
+      p.items = p.items.filter((_, index) => keepFlags[index]);
+    }));
+  });
   // Defer display reporting to avoid adding to long tasks.
   window.setTimeout(() => {
     window.webSdk('sendEvent', {
