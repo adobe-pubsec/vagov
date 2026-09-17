@@ -224,16 +224,6 @@ function initWebSDK(path, config) {
   });
 }
 
-function toCssSelector(selector) {
-  return selector.replace(/(\.\S+)?:eq\((\d+)\)/g, (_, clss, i) => `:nth-child(${Number(i) + 1}${clss ? ` of ${clss}` : ''})`);
-}
-
-async function getElementForProposition(proposition) {
-  const selector = proposition.data.prehidingSelector
-    || toCssSelector(proposition.data.selector);
-  return document.querySelector(selector);
-}
-
 /**
  * Runs fn() once immediately if blocks/sections are already decorated, then
  * again every time more of them finish decorating asynchronously.
@@ -273,18 +263,63 @@ function getTargetProfileData() {
   };
 }
 
+function parseDomActionContent(content) {
+  const template = document.createElement('template');
+  template.innerHTML = content.trim();
+  return template.content;
+}
+
+function markInsertedNodes(fragment, itemId) {
+  [...fragment.children].forEach((el) => {
+    el.dataset.targetPropositionId = itemId;
+  });
+}
+
+function wasDomActionApplied(item) {
+  if (!item?.id || item.schema !== 'https://ns.adobe.com/personalization/dom-action') return false;
+  return !!document.querySelector(`[data-target-proposition-id="${item.id}"]`);
+}
+
+function applyDomActionFallback(item) {
+  if (item.schema !== 'https://ns.adobe.com/personalization/dom-action') return;
+  const { data } = item;
+  if (!data || typeof data.content !== 'string') return;
+  if (!['insertAfter', 'insertBefore', 'appendHtml', 'prependHtml'].includes(data.type)) return;
+  if (wasDomActionApplied(item)) return;
+
+  const target = document.querySelector(data.selector);
+  if (!target) return;
+
+  const fragment = parseDomActionContent(data.content);
+  markInsertedNodes(fragment, item.id);
+
+  if (data.type === 'insertAfter') {
+    target.after(fragment);
+  } else if (data.type === 'insertBefore') {
+    target.before(fragment);
+  } else if (data.type === 'appendHtml') {
+    target.append(fragment);
+  } else if (data.type === 'prependHtml') {
+    target.prepend(fragment);
+  }
+}
+
+function pruneAppliedDomActions(items) {
+  return items.filter((item) => {
+    if (item.schema !== 'https://ns.adobe.com/personalization/dom-action') return true;
+    if (wasDomActionApplied(item)) return false;
+    return !document.querySelector(item.data?.selector || '');
+  });
+}
+
 async function applyPendingPropositions(propositions) {
   const applicable = propositions.filter((p) => p.items.length > 0);
   if (applicable.length === 0) return;
   await window.webSdk('applyPropositions', { propositions: applicable });
-  // Drop dom-action items once applied so re-runs don't re-apply them.
-  await Promise.all(applicable.map(async (p) => {
-    const keepFlags = await Promise.all(p.items.map(async (i) => (
-      i.schema !== 'https://ns.adobe.com/personalization/dom-action'
-      || !(await getElementForProposition(i))
-    )));
-    p.items = p.items.filter((_, index) => keepFlags[index]);
-  }));
+  applicable.forEach((p) => {
+    p.items.forEach(applyDomActionFallback);
+    p.items = pruneAppliedDomActions(p.items);
+  });
 }
 
 async function getAndApplyRenderDecisions() {
