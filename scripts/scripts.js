@@ -449,26 +449,27 @@ document.addEventListener('click', (e) => {
 // Web SDK. 'in' releases queued events and lets decisions/analytics flow;
 // 'out' keeps the SDK from collecting. Fires render decisions once granted.
 let renderDecisionsRequested = false;
-window.addEventListener('consent.update', ({ detail }) => {
+window.addEventListener('consent.update', async ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
   analyticsConsented = !!detail?.consented;
-  window.webSdk('setConsent', {
-    consent: [{
-      standard: 'Adobe',
-      version: '2.0',
-      value: { collect: { val: collect } },
-    }],
-  });
-  if (detail?.consented && !renderDecisionsRequested) {
-    renderDecisionsRequested = true;
-    alloyLoadedPromise
-      .then(cacheEcid) // resolve the ECID first so events carry _demosystem4
-      .then(() => sendAuthenticatedIdentity(getUser())) // link a pre-existing session
-      .then(() => getAndApplyRenderDecisions())
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
-      });
+  try {
+    await alloyLoadedPromise;
+    await window.webSdk('setConsent', {
+      consent: [{
+        standard: 'Adobe',
+        version: '2.0',
+        value: { collect: { val: collect } },
+      }],
+    });
+    if (detail?.consented && !renderDecisionsRequested) {
+      renderDecisionsRequested = true;
+      await cacheEcid(); // resolve the ECID first so events carry _demosystem4
+      sendAuthenticatedIdentity(getUser()); // link a pre-existing session
+      await getAndApplyRenderDecisions();
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[webSdk] consent/render flow failed:', error);
   }
 });
 
@@ -685,6 +686,7 @@ function decorateLeftNavTemplate(main) {
 // Classes that carry a leading token but are NOT blocks — don't treat as blocks.
 const NON_BLOCK_CLASSES = new Set([
   'block', 'section', 'default-content-wrapper', 'button-container', 'icon', 'cta-arrow',
+  'section-columns', 'section-column',
 ]);
 
 /**
