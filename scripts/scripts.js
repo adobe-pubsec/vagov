@@ -273,6 +273,20 @@ function getTargetProfileData() {
   };
 }
 
+async function applyPendingPropositions(propositions) {
+  const applicable = propositions.filter((p) => p.items.length > 0);
+  if (applicable.length === 0) return;
+  await window.webSdk('applyPropositions', { propositions: applicable });
+  // Drop dom-action items once applied so re-runs don't re-apply them.
+  await Promise.all(applicable.map(async (p) => {
+    const keepFlags = await Promise.all(p.items.map(async (i) => (
+      i.schema !== 'https://ns.adobe.com/personalization/dom-action'
+      || !(await getElementForProposition(i))
+    )));
+    p.items = p.items.filter((_, index) => keepFlags[index]);
+  }));
+}
+
 async function getAndApplyRenderDecisions() {
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
@@ -289,19 +303,8 @@ async function getAndApplyRenderDecisions() {
     data: getTargetProfileData(),
   });
   const { propositions } = response;
-  onDecoratedElement(async () => {
-    const applicable = propositions.filter((p) => p.items.length > 0);
-    if (applicable.length === 0) return;
-    await window.webSdk('applyPropositions', { propositions: applicable });
-    // Drop dom-action items once applied so re-runs don't re-apply them.
-    await Promise.all(applicable.map(async (p) => {
-      const keepFlags = await Promise.all(p.items.map(async (i) => (
-        i.schema !== 'https://ns.adobe.com/personalization/dom-action'
-        || !(await getElementForProposition(i))
-      )));
-      p.items = p.items.filter((_, index) => keepFlags[index]);
-    }));
-  });
+  await applyPendingPropositions(propositions);
+  onDecoratedElement(() => applyPendingPropositions(propositions));
   // Defer display reporting to avoid adding to long tasks.
   window.setTimeout(() => {
     window.webSdk('sendEvent', {
