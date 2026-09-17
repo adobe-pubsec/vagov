@@ -259,6 +259,12 @@ function onDecoratedElement(fn) {
 }
 
 async function getAndApplyRenderDecisions() {
+  // eslint-disable-next-line no-console
+  console.log('[Target debug] getAndApplyRenderDecisions entry', {
+    authenticated: !!getUser(),
+    consented: localStorage.getItem('va-consent') === 'accept',
+    page: window.location.href,
+  });
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
   // window.dataLayer.page.name) is what Target uses to resolve the named view.
@@ -454,7 +460,18 @@ window.addEventListener('consent.update', async ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
   analyticsConsented = !!detail?.consented;
   try {
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] consent.update start', {
+      consented: !!detail?.consented,
+      authenticated: !!getUser(),
+      renderDecisionsRequested,
+    });
     await alloyLoadedPromise;
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] alloy configured', {
+      authenticated: !!getUser(),
+      renderDecisionsRequested,
+    });
     await window.webSdk('setConsent', {
       consent: [{
         standard: 'Adobe',
@@ -462,10 +479,25 @@ window.addEventListener('consent.update', async ({ detail }) => {
         value: { collect: { val: collect } },
       }],
     });
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] setConsent success', {
+      consented: !!detail?.consented,
+      authenticated: !!getUser(),
+    });
     if (detail?.consented && !renderDecisionsRequested) {
       renderDecisionsRequested = true;
       await cacheEcid(); // resolve the ECID first so events carry _demosystem4
+      // eslint-disable-next-line no-console
+      console.log('[Target debug] cacheEcid success', {
+        authenticated: !!getUser(),
+        hasUser: !!getUser(),
+      });
       sendAuthenticatedIdentity(getUser()); // link a pre-existing session
+      // eslint-disable-next-line no-console
+      console.log('[Target debug] sendAuthenticatedIdentity dispatched', {
+        authenticated: !!getUser(),
+        hasDemoSystemUserId: !!getUser()?.demoSystemUserId,
+      });
       await getAndApplyRenderDecisions();
     }
   } catch (error) {
