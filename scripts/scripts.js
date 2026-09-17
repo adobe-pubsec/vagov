@@ -276,7 +276,27 @@ async function getAndApplyRenderDecisions() {
   onDecoratedElement(async () => {
     const applicable = propositions.filter((p) => p.items.length > 0);
     if (applicable.length === 0) return;
-    await window.webSdk('applyPropositions', { propositions: applicable });
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] applyPropositions start', applicable.map((p) => ({
+      id: p.id,
+      items: p.items.map((item) => ({
+        id: item.id,
+        schema: item.schema,
+        type: item.data?.type,
+        selector: item.data?.selector,
+      })),
+    })));
+    try {
+      await window.webSdk('applyPropositions', { propositions: applicable });
+      // eslint-disable-next-line no-console
+      console.log('[Target debug] applyPropositions success', {
+        promoBannerPresent: !!document.querySelector('.promo-banner'),
+        heroWelcomePresent: !!document.querySelector('.hero-welcome'),
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[Target debug] applyPropositions failed', error);
+    }
     // Drop dom-action items once applied so re-runs don't re-apply them.
     await Promise.all(applicable.map(async (p) => {
       const keepFlags = await Promise.all(p.items.map(async (i) => (
@@ -430,26 +450,27 @@ document.addEventListener('click', (e) => {
 // Web SDK. 'in' releases queued events and lets decisions/analytics flow;
 // 'out' keeps the SDK from collecting. Fires render decisions once granted.
 let renderDecisionsRequested = false;
-window.addEventListener('consent.update', ({ detail }) => {
+window.addEventListener('consent.update', async ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
   analyticsConsented = !!detail?.consented;
-  window.webSdk('setConsent', {
-    consent: [{
-      standard: 'Adobe',
-      version: '2.0',
-      value: { collect: { val: collect } },
-    }],
-  });
-  if (detail?.consented && !renderDecisionsRequested) {
-    renderDecisionsRequested = true;
-    alloyLoadedPromise
-      .then(cacheEcid) // resolve the ECID first so events carry _demosystem4
-      .then(() => sendAuthenticatedIdentity(getUser())) // link a pre-existing session
-      .then(() => getAndApplyRenderDecisions())
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
-      });
+  try {
+    await alloyLoadedPromise;
+    await window.webSdk('setConsent', {
+      consent: [{
+        standard: 'Adobe',
+        version: '2.0',
+        value: { collect: { val: collect } },
+      }],
+    });
+    if (detail?.consented && !renderDecisionsRequested) {
+      renderDecisionsRequested = true;
+      await cacheEcid(); // resolve the ECID first so events carry _demosystem4
+      sendAuthenticatedIdentity(getUser()); // link a pre-existing session
+      await getAndApplyRenderDecisions();
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[webSdk] consent/render flow failed:', error);
   }
 });
 
