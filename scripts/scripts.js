@@ -719,6 +719,7 @@ function decorateLeftNavTemplate(main) {
 // Classes that carry a leading token but are NOT blocks — don't treat as blocks.
 const NON_BLOCK_CLASSES = new Set([
   'block', 'section', 'default-content-wrapper', 'button-container', 'icon', 'cta-arrow',
+  'section-columns', 'section-column',
 ]);
 
 /**
