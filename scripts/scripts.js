@@ -315,7 +315,12 @@ function pruneAppliedDomActions(items) {
 async function applyPendingPropositions(propositions) {
   const applicable = propositions.filter((p) => p.items.length > 0);
   if (applicable.length === 0) return;
-  await window.webSdk('applyPropositions', { propositions: applicable });
+  try {
+    await window.webSdk('applyPropositions', { propositions: applicable });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('[webSdk] applyPropositions failed, attempting local dom-action fallback:', error);
+  }
   applicable.forEach((p) => {
     p.items.forEach(applyDomActionFallback);
     p.items = pruneAppliedDomActions(p.items);
