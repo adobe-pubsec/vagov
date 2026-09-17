@@ -288,10 +288,20 @@ function applyDomActionFallback(item) {
   if (wasDomActionApplied(item)) return;
 
   const target = document.querySelector(data.selector);
-  if (!target) return;
+  if (!target) {
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] fallback target missing', { itemId: item.id, selector: data.selector });
+    return;
+  }
 
   const fragment = parseDomActionContent(data.content);
   markInsertedNodes(fragment, item.id);
+  // eslint-disable-next-line no-console
+  console.log('[Target debug] fallback inserting dom-action', {
+    itemId: item.id,
+    type: data.type,
+    selector: data.selector,
+  });
 
   if (data.type === 'insertAfter') {
     target.after(fragment);
@@ -315,6 +325,16 @@ function pruneAppliedDomActions(items) {
 async function applyPendingPropositions(propositions) {
   const applicable = propositions.filter((p) => p.items.length > 0);
   if (applicable.length === 0) return;
+  // eslint-disable-next-line no-console
+  console.log('[Target debug] applying propositions', applicable.map((p) => ({
+    id: p.id,
+    items: p.items.map((item) => ({
+      id: item.id,
+      schema: item.schema,
+      type: item.data?.type,
+      selector: item.data?.selector,
+    })),
+  })));
   try {
     await window.webSdk('applyPropositions', { propositions: applicable });
   } catch (error) {
@@ -325,6 +345,8 @@ async function applyPendingPropositions(propositions) {
     p.items.forEach(applyDomActionFallback);
     p.items = pruneAppliedDomActions(p.items);
   });
+  // eslint-disable-next-line no-console
+  console.log('[Target debug] post-apply markers', document.querySelectorAll('[data-target-proposition-id]').length);
 }
 
 async function getAndApplyRenderDecisions() {
