@@ -729,7 +729,10 @@ const NON_BLOCK_CLASSES = new Set([
  * @param {Element} el
  */
 function isUndecoratedBlock(el) {
-  if (!(el instanceof Element) || el.dataset.blockStatus || el.classList.contains('block')) return false;
+  if (!(el instanceof Element)
+    || el.dataset.blockStatus
+    || el.classList.contains('block')
+    || el.classList.contains('section')) return false;
   const name = el.classList[0];
   if (!name || NON_BLOCK_CLASSES.has(name) || name.endsWith('-wrapper') || name.endsWith('-container')) {
     return false;
