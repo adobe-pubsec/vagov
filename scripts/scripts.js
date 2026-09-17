@@ -279,8 +279,25 @@ async function getAndApplyRenderDecisions() {
     },
   });
   const { propositions } = response;
+  // eslint-disable-next-line no-console
+  console.log('[Target debug] decision response received', {
+    propositionCount: propositions.length,
+    itemCount: propositions.reduce((sum, proposition) => sum + proposition.items.length, 0),
+    authenticated: !!getUser(),
+  });
   onDecoratedElement(async () => {
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] onDecoratedElement fired', {
+      authenticated: !!getUser(),
+      loadedBlocks: document.querySelectorAll('[data-block-status="loaded"]').length,
+      loadedSections: document.querySelectorAll('[data-section-status="loaded"]').length,
+    });
     const applicable = propositions.filter((p) => p.items.length > 0);
+    // eslint-disable-next-line no-console
+    console.log('[Target debug] applicable propositions', {
+      count: applicable.length,
+      authenticated: !!getUser(),
+    });
     if (applicable.length === 0) return;
     // eslint-disable-next-line no-console
     console.log('[Target debug] applyPropositions start', applicable.map((p) => ({
@@ -718,7 +735,7 @@ function decorateLeftNavTemplate(main) {
 
 // Classes that carry a leading token but are NOT blocks — don't treat as blocks.
 const NON_BLOCK_CLASSES = new Set([
-  'block', 'section', 'default-content-wrapper', 'button-container', 'icon', 'cta-arrow',
+  'block', 'section', 'default-content-wrapper', 'button-container', 'button', 'icon', 'cta-arrow',
   'section-columns', 'section-column',
 ]);
 
