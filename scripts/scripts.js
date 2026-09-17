@@ -396,6 +396,10 @@ const alloyLoadedPromise = initWebSDK('./alloy.js', {
 // call window.trackInteraction(name, url) directly.
 let analyticsConsented = false;
 
+function shouldBypassAuthenticatedIdentity() {
+  return new URLSearchParams(window.location.search).has('target-anon');
+}
+
 function trackInteraction(name, url) {
   if (!analyticsConsented || !window.webSdk) return;
   window.webSdk('sendEvent', {
@@ -435,7 +439,7 @@ function reflectAuthInDataLayer(user) {
 }
 
 function sendAuthenticatedIdentity(user) {
-  if (!analyticsConsented || !window.webSdk || !user) return;
+  if (!analyticsConsented || !window.webSdk || !user || shouldBypassAuthenticatedIdentity()) return;
   const identityMap = {};
   if (user.demoSystemUserId) {
     identityMap[DEMO_USER_ID_NAMESPACE] = [
