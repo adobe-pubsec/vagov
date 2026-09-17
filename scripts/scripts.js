@@ -224,6 +224,16 @@ function initWebSDK(path, config) {
   });
 }
 
+function toCssSelector(selector) {
+  return selector.replace(/(\.\S+)?:eq\((\d+)\)/g, (_, clss, i) => `:nth-child(${Number(i) + 1}${clss ? ` of ${clss}` : ''})`);
+}
+
+async function getElementForProposition(proposition) {
+  const selector = proposition.data.prehidingSelector
+    || toCssSelector(proposition.data.selector);
+  return document.querySelector(selector);
+}
+
 /**
  * Runs fn() once immediately if blocks/sections are already decorated, then
  * again every time more of them finish decorating asynchronously.
@@ -248,31 +258,6 @@ function onDecoratedElement(fn) {
   observer.observe(document.querySelector('body'), { childList: true });
 }
 
-const TARGET_AUDIENCE_SOURCE_PATH = '/education/about-gi-bill-benefits';
-const TARGET_AUDIENCE_PROFILE_KEY = 'profile.interestInGiBill';
-
-function getTargetProfileData() {
-  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
-  if (pathname !== TARGET_AUDIENCE_SOURCE_PATH) return undefined;
-  return {
-    __adobe: {
-      target: {
-        [TARGET_AUDIENCE_PROFILE_KEY]: 'true',
-      },
-    },
-  };
-}
-
-function toCssSelector(selector) {
-  return selector.replace(/(\.\S+)?:eq\((\d+)\)/g, (_, clss, i) => `:nth-child(${Number(i) + 1}${clss ? ` of ${clss}` : ''})`);
-}
-
-async function getElementForProposition(proposition) {
-  const selector = proposition.data.prehidingSelector
-    || toCssSelector(proposition.data.selector);
-  return document.querySelector(selector);
-}
-
 async function getAndApplyRenderDecisions() {
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
@@ -286,7 +271,6 @@ async function getAndApplyRenderDecisions() {
         webPageDetails: { name: document.title, viewName: window.dataLayer?.page?.name },
       },
     },
-    data: getTargetProfileData(),
   });
   const { propositions } = response;
   onDecoratedElement(async () => {
@@ -446,27 +430,26 @@ document.addEventListener('click', (e) => {
 // Web SDK. 'in' releases queued events and lets decisions/analytics flow;
 // 'out' keeps the SDK from collecting. Fires render decisions once granted.
 let renderDecisionsRequested = false;
-window.addEventListener('consent.update', async ({ detail }) => {
+window.addEventListener('consent.update', ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
   analyticsConsented = !!detail?.consented;
-  try {
-    await alloyLoadedPromise;
-    await window.webSdk('setConsent', {
-      consent: [{
-        standard: 'Adobe',
-        version: '2.0',
-        value: { collect: { val: collect } },
-      }],
-    });
-    if (detail?.consented && !renderDecisionsRequested) {
-      renderDecisionsRequested = true;
-      await cacheEcid(); // resolve the ECID first so events carry _demosystem4
-      sendAuthenticatedIdentity(getUser()); // link a pre-existing session
-      await getAndApplyRenderDecisions();
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[webSdk] consent/render flow failed:', error);
+  window.webSdk('setConsent', {
+    consent: [{
+      standard: 'Adobe',
+      version: '2.0',
+      value: { collect: { val: collect } },
+    }],
+  });
+  if (detail?.consented && !renderDecisionsRequested) {
+    renderDecisionsRequested = true;
+    alloyLoadedPromise
+      .then(cacheEcid) // resolve the ECID first so events carry _demosystem4
+      .then(() => sendAuthenticatedIdentity(getUser())) // link a pre-existing session
+      .then(() => getAndApplyRenderDecisions())
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('[webSdk] getAndApplyRenderDecisions failed:', error);
+      });
   }
 });
 
@@ -683,7 +666,6 @@ function decorateLeftNavTemplate(main) {
 // Classes that carry a leading token but are NOT blocks — don't treat as blocks.
 const NON_BLOCK_CLASSES = new Set([
   'block', 'section', 'default-content-wrapper', 'button-container', 'icon', 'cta-arrow',
-  'section-columns', 'section-column',
 ]);
 
 /**
