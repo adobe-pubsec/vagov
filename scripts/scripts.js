@@ -285,6 +285,9 @@ async function getAndApplyRenderDecisions() {
   const response = await window.webSdk('sendEvent', {
     type: 'web.webpagedetails.pageViews',
     renderDecisions: false,
+    personalization: {
+      decisionScopes: ['__view__'],
+    },
     xdm: {
       ...(identityMap ? { identityMap } : {}),
       web: {
