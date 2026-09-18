@@ -48,11 +48,20 @@ if (window.trustedTypes && window.trustedTypes.createPolicy) {
   });
 }
 
+// Bitter (headings) + Source Sans 3 (body) — the brand.css type system. Loaded
+// via loadCSS (not a blocking <link> in head.html) so the Google Fonts request
+// doesn't delay first paint; text renders in the fallback stack and swaps in
+// (font-display: swap) once this resolves.
+const GOOGLE_FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap';
+
 /**
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
-  await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
+  await Promise.all([
+    loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`),
+    loadCSS(GOOGLE_FONTS_HREF),
+  ]);
   try {
     if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
   } catch (e) {
