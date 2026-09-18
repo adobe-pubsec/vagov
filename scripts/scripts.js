@@ -439,7 +439,9 @@ function reflectAuthInDataLayer(user) {
 }
 
 function sendAuthenticatedIdentity(user) {
-  if (!analyticsConsented || !window.webSdk || !user || shouldBypassAuthenticatedIdentity()) return;
+  if (!analyticsConsented || !window.webSdk || !user || shouldBypassAuthenticatedIdentity()) {
+    return Promise.resolve();
+  }
   const identityMap = {};
   if (user.demoSystemUserId) {
     identityMap[DEMO_USER_ID_NAMESPACE] = [
@@ -451,7 +453,7 @@ function sendAuthenticatedIdentity(user) {
       { id: user.email, primary: !user.demoSystemUserId, authenticatedState: 'authenticated' },
     ];
   }
-  window.webSdk('sendEvent', {
+  return window.webSdk('sendEvent', {
     xdm: {
       eventType: 'web.webinteraction.linkClicks',
       identityMap,
@@ -513,7 +515,7 @@ window.addEventListener('consent.update', async ({ detail }) => {
         authenticated: !!getUser(),
         hasUser: !!getUser(),
       });
-      sendAuthenticatedIdentity(getUser()); // link a pre-existing session
+      await sendAuthenticatedIdentity(getUser()); // link a pre-existing session first
       // eslint-disable-next-line no-console
       console.log('[Target debug] sendAuthenticatedIdentity dispatched', {
         authenticated: !!getUser(),
