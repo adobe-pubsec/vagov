@@ -279,6 +279,10 @@ function getAuthenticatedIdentityMap(user) {
 async function getAndApplyRenderDecisions() {
   const user = getUser();
   const identityMap = getAuthenticatedIdentityMap(user);
+  const profile = {};
+  if (user && typeof user.interestedInGIBill !== 'undefined') {
+    profile.interestedInGIBill = !!user.interestedInGIBill;
+  }
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
   // window.dataLayer.page.name) is what Target uses to resolve the named view.
@@ -288,6 +292,7 @@ async function getAndApplyRenderDecisions() {
     personalization: {
       decisionScopes: ['__view__'],
     },
+    ...(Object.keys(profile).length ? { profile } : {}),
     xdm: {
       ...(identityMap ? { identityMap } : {}),
       web: {
@@ -419,6 +424,7 @@ function reflectAuthInDataLayer(user) {
         id: user.id,
         provider: user.provider,
         demoSystemUserId: user.demoSystemUserId,
+        interestedInGIBill: !!user.interestedInGIBill,
       }
       : { authenticated: false },
   }, false);
