@@ -279,13 +279,6 @@ function getAuthenticatedIdentityMap(user) {
 async function getAndApplyRenderDecisions() {
   const user = getUser();
   const identityMap = getAuthenticatedIdentityMap(user);
-  // eslint-disable-next-line no-console
-  console.log('[Target debug] getAndApplyRenderDecisions entry', {
-    authenticated: !!user,
-    consented: localStorage.getItem('va-consent') === 'accept',
-    page: window.location.href,
-    identityNamespaces: identityMap ? Object.keys(identityMap) : [],
-  });
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
   // window.dataLayer.page.name) is what Target uses to resolve the named view.
@@ -301,46 +294,14 @@ async function getAndApplyRenderDecisions() {
     },
   });
   const { propositions } = response;
-  // eslint-disable-next-line no-console
-  console.log('[Target debug] decision response received', {
-    propositionCount: propositions.length,
-    itemCount: propositions.reduce((sum, proposition) => sum + proposition.items.length, 0),
-    authenticated: !!getUser(),
-  });
   onDecoratedElement(async () => {
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] onDecoratedElement fired', {
-      authenticated: !!getUser(),
-      loadedBlocks: document.querySelectorAll('[data-block-status="loaded"]').length,
-      loadedSections: document.querySelectorAll('[data-section-status="loaded"]').length,
-    });
     const applicable = propositions.filter((p) => p.items.length > 0);
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] applicable propositions', {
-      count: applicable.length,
-      authenticated: !!getUser(),
-    });
     if (applicable.length === 0) return;
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] applyPropositions start', applicable.map((p) => ({
-      id: p.id,
-      items: p.items.map((item) => ({
-        id: item.id,
-        schema: item.schema,
-        type: item.data?.type,
-        selector: item.data?.selector,
-      })),
-    })));
     try {
       await window.webSdk('applyPropositions', { propositions: applicable });
-      // eslint-disable-next-line no-console
-      console.log('[Target debug] applyPropositions success', {
-        promoBannerPresent: !!document.querySelector('.promo-banner'),
-        heroWelcomePresent: !!document.querySelector('.hero-welcome'),
-      });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('[Target debug] applyPropositions failed', error);
+      console.error('[webSdk] applyPropositions failed', error);
     }
     // Drop dom-action items once applied so re-runs don't re-apply them.
     await Promise.all(applicable.map(async (p) => {
@@ -498,18 +459,7 @@ window.addEventListener('consent.update', async ({ detail }) => {
   const collect = detail?.consented ? 'y' : 'n';
   analyticsConsented = !!detail?.consented;
   try {
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] consent.update start', {
-      consented: !!detail?.consented,
-      authenticated: !!getUser(),
-      renderDecisionsRequested,
-    });
     await alloyLoadedPromise;
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] alloy configured', {
-      authenticated: !!getUser(),
-      renderDecisionsRequested,
-    });
     await window.webSdk('setConsent', {
       consent: [{
         standard: 'Adobe',
@@ -517,25 +467,10 @@ window.addEventListener('consent.update', async ({ detail }) => {
         value: { collect: { val: collect } },
       }],
     });
-    // eslint-disable-next-line no-console
-    console.log('[Target debug] setConsent success', {
-      consented: !!detail?.consented,
-      authenticated: !!getUser(),
-    });
     if (detail?.consented && !renderDecisionsRequested) {
       renderDecisionsRequested = true;
       await cacheEcid(); // resolve the ECID first so events carry _demosystem4
-      // eslint-disable-next-line no-console
-      console.log('[Target debug] cacheEcid success', {
-        authenticated: !!getUser(),
-        hasUser: !!getUser(),
-      });
       await sendAuthenticatedIdentity(getUser()); // link a pre-existing session first
-      // eslint-disable-next-line no-console
-      console.log('[Target debug] sendAuthenticatedIdentity dispatched', {
-        authenticated: !!getUser(),
-        hasDemoSystemUserId: !!getUser()?.demoSystemUserId,
-      });
       await getAndApplyRenderDecisions();
     }
   } catch (error) {
