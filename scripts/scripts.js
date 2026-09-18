@@ -258,12 +258,33 @@ function onDecoratedElement(fn) {
   observer.observe(document.querySelector('body'), { childList: true });
 }
 
+function getAuthenticatedIdentityMap(user) {
+  // eslint-disable-next-line no-use-before-define
+  if (!user || shouldBypassAuthenticatedIdentity()) return null;
+  const identityMap = {};
+  if (user.demoSystemUserId) {
+    // eslint-disable-next-line no-use-before-define
+    identityMap[DEMO_USER_ID_NAMESPACE] = [
+      { id: user.demoSystemUserId, primary: true, authenticatedState: 'authenticated' },
+    ];
+  }
+  if (user.email) {
+    identityMap.Email = [
+      { id: user.email, primary: !user.demoSystemUserId, authenticatedState: 'authenticated' },
+    ];
+  }
+  return Object.keys(identityMap).length ? identityMap : null;
+}
+
 async function getAndApplyRenderDecisions() {
+  const user = getUser();
+  const identityMap = getAuthenticatedIdentityMap(user);
   // eslint-disable-next-line no-console
   console.log('[Target debug] getAndApplyRenderDecisions entry', {
-    authenticated: !!getUser(),
+    authenticated: !!user,
     consented: localStorage.getItem('va-consent') === 'accept',
     page: window.location.href,
+    identityNamespaces: identityMap ? Object.keys(identityMap) : [],
   });
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
@@ -272,6 +293,7 @@ async function getAndApplyRenderDecisions() {
     type: 'web.webpagedetails.pageViews',
     renderDecisions: false,
     xdm: {
+      ...(identityMap ? { identityMap } : {}),
       web: {
         webInteraction: { URL: window.location.href, name: document.title },
         webPageDetails: { name: document.title, viewName: window.dataLayer?.page?.name },
@@ -439,19 +461,12 @@ function reflectAuthInDataLayer(user) {
 }
 
 function sendAuthenticatedIdentity(user) {
-  if (!analyticsConsented || !window.webSdk || !user || shouldBypassAuthenticatedIdentity()) {
+  if (!analyticsConsented || !window.webSdk) {
     return Promise.resolve();
   }
-  const identityMap = {};
-  if (user.demoSystemUserId) {
-    identityMap[DEMO_USER_ID_NAMESPACE] = [
-      { id: user.demoSystemUserId, primary: true, authenticatedState: 'authenticated' },
-    ];
-  }
-  if (user.email) {
-    identityMap.Email = [
-      { id: user.email, primary: !user.demoSystemUserId, authenticatedState: 'authenticated' },
-    ];
+  const identityMap = getAuthenticatedIdentityMap(user);
+  if (!identityMap) {
+    return Promise.resolve();
   }
   return window.webSdk('sendEvent', {
     xdm: {
