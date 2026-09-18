@@ -19,6 +19,7 @@
 import { loadCSS } from './aem.js';
 
 const SESSION_KEY = 'va-auth';
+const GI_BILL_PROFILE_KEY = 'va-target-gibill-interest';
 const SIGN_IN_PATH = '/sign-in/';
 // Authored fragment supplying the chooser modal's content (VA logo, heading,
 // provider buttons, help links). Falls back to buildChooser() if not authored.
@@ -45,9 +46,22 @@ const PROVIDERS = {
 };
 
 /** @returns {object|null} the signed-in user, or null. */
+function hasPersistedGIBillInterest() {
+  try {
+    return ['true', '1', 'yes', 'y'].includes((localStorage.getItem(GI_BILL_PROFILE_KEY) || '').trim().toLowerCase());
+  } catch (e) {
+    return false;
+  }
+}
+
 export function getUser() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
+    const user = JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
+    if (user && !user.interestedInGIBill && hasPersistedGIBillInterest()) {
+      user.interestedInGIBill = true;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    }
+    return user;
   } catch (e) {
     return null;
   }
@@ -104,17 +118,22 @@ function normalizeBoolean(value) {
 
 function signInAs(record, providerKey) {
   const provider = PROVIDERS[providerKey] ? providerKey : 'idme';
+  const rememberedGIBillInterest = hasPersistedGIBillInterest();
+  const interestedInGIBill = normalizeBoolean(record.interestedInGIBill) || rememberedGIBillInterest;
   const user = {
     id: record.id,
     email: record.email,
     firstName: record.firstName,
     name: [record.firstName, record.lastName].filter(Boolean).join(' ') || record.email,
     demoSystemUserId: record.demoSystemUserId,
-    interestedInGIBill: normalizeBoolean(record.interestedInGIBill),
+    interestedInGIBill,
     provider,
     providerLabel: PROVIDERS[provider].label,
     since: Date.now(),
   };
+  if (interestedInGIBill) {
+    localStorage.setItem(GI_BILL_PROFILE_KEY, 'true');
+  }
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));
   dispatchAuth(user);
   return user;

@@ -276,8 +276,35 @@ function getAuthenticatedIdentityMap(user) {
   return Object.keys(identityMap).length ? identityMap : null;
 }
 
+const GI_BILL_PATH_RE = /\/education\/about-gi-bill-benefits(?:\/|$)/i;
+const GI_BILL_PROFILE_KEY = 'va-target-gibill-interest';
+
+function hasSeenGIBillPage() {
+  try {
+    return localStorage.getItem(GI_BILL_PROFILE_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+function rememberGIBillInterest() {
+  try {
+    localStorage.setItem(GI_BILL_PROFILE_KEY, 'true');
+  } catch (e) {
+    // no-op if storage is unavailable
+  }
+}
+
+function hydrateUserGIBillInterest(user) {
+  if (!user || user.interestedInGIBill) return user;
+  if (hasSeenGIBillPage()) {
+    user.interestedInGIBill = true;
+  }
+  return user;
+}
+
 async function getAndApplyRenderDecisions() {
-  const user = getUser();
+  const user = hydrateUserGIBillInterest(getUser());
   const identityMap = getAuthenticatedIdentityMap(user);
   // Adobe Experience Platform Web SDK rejects a top-level `profile` field on
   // `sendEvent`; the supported payload here is identityMap + xdm + decision
@@ -489,12 +516,17 @@ window.addEventListener('consent.update', async ({ detail }) => {
 
 // Reflect any existing session on load (pre-consent: data layer only), then keep
 // both the data layer and Web SDK identity in step with sign-in / sign-out.
-reflectAuthInDataLayer(getUser());
+const userOnLoad = hydrateUserGIBillInterest(getUser());
+reflectAuthInDataLayer(userOnLoad);
 window.addEventListener('auth.update', ({ detail }) => {
-  const user = detail?.user || null;
+  const user = hydrateUserGIBillInterest(detail?.user || null);
   reflectAuthInDataLayer(user);
   if (user) sendAuthenticatedIdentity(user);
 });
+
+if (GI_BILL_PATH_RE.test(window.location.pathname)) {
+  rememberGIBillInterest();
+}
 
 /**
  * Splits a section into columns when it has an `item-widths` section-metadata
