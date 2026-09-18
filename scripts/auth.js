@@ -94,6 +94,14 @@ export async function findUserById(id) {
  * Establish a mock session from a user-sheet record + chosen provider, and
  * announce it. The session carries demoSystemUserId (the AEP stitch key).
  */
+function normalizeBoolean(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return ['true', '1', 'yes', 'y'].includes(value.trim().toLowerCase());
+  }
+  return Boolean(value);
+}
+
 function signInAs(record, providerKey) {
   const provider = PROVIDERS[providerKey] ? providerKey : 'idme';
   const user = {
@@ -102,6 +110,7 @@ function signInAs(record, providerKey) {
     firstName: record.firstName,
     name: [record.firstName, record.lastName].filter(Boolean).join(' ') || record.email,
     demoSystemUserId: record.demoSystemUserId,
+    interestedInGIBill: normalizeBoolean(record.interestedInGIBill),
     provider,
     providerLabel: PROVIDERS[provider].label,
     since: Date.now(),
