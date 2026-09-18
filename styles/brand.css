@@ -1,10 +1,25 @@
 /* brand.css — VA.gov design tokens extracted from https://www.va.gov/
    Heading: Bitter (serif). Body: Source Sans 3 (USWDS "Source Sans Pro"). */
 
+/* Metric-matched local fallbacks (size-adjust) so text doesn't reflow when
+   Bitter/Source Sans 3 swap in — this file is @imported into the
+   render-blocking styles.css, so these are available at first paint. */
+@font-face {
+  font-family: "bitter-normal-400-fallback";
+  size-adjust: 102.941%;
+  src: local("Georgia");
+}
+
+@font-face {
+  font-family: "source-sans-3-normal-400-fallback";
+  size-adjust: 92.889%;
+  src: local("Arial");
+}
+
 :root {
   /* fonts */
-  --heading-font-family: "Bitter", georgia, cambria, "Times New Roman", times, serif;
-  --body-font-family: "Source Sans 3", "Source Sans Pro", "Helvetica Neue", helvetica, arial, sans-serif;
+  --heading-font-family: "Bitter", "bitter-normal-400-fallback", georgia, cambria, "Times New Roman", times, serif;
+  --body-font-family: "Source Sans 3", "source-sans-3-normal-400-fallback", "Source Sans Pro", "Helvetica Neue", helvetica, arial, sans-serif;
 
   /* colors */
   --background-color: #fff;
