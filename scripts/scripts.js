@@ -457,7 +457,7 @@ function reflectAuthInDataLayer(user) {
 }
 
 function sendAuthenticatedIdentity(user) {
-  if (!analyticsConsented || !window.webSdk) {
+  if (!analyticsConsented || !window.webSdk || !user) {
     return Promise.resolve();
   }
   const identityMap = getAuthenticatedIdentityMap(user);
@@ -473,6 +473,13 @@ function sendAuthenticatedIdentity(user) {
           name: `sign-in:${user.provider}`,
           linkClicks: { value: 1 },
           type: 'other',
+        },
+      },
+    },
+    data: {
+      __adobe: {
+        target: {
+          'profile.firstName': user.firstName || '',
         },
       },
     },
