@@ -276,13 +276,46 @@ function getAuthenticatedIdentityMap(user) {
   return Object.keys(identityMap).length ? identityMap : null;
 }
 
+const GI_BILL_PATH_RE = /\/education\/about-gi-bill-benefits(?:\/|$)/i;
+const GI_BILL_PROFILE_KEY = 'va-target-gibill-interest';
+
+function hasSeenGIBillPage() {
+  try {
+    return localStorage.getItem(GI_BILL_PROFILE_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+function rememberGIBillInterest() {
+  try {
+    localStorage.setItem(GI_BILL_PROFILE_KEY, 'true');
+  } catch (e) {
+    // no-op if storage is unavailable
+  }
+}
+
+function getTargetProfile(user) {
+  const profile = {};
+  const pageIsGIBill = GI_BILL_PATH_RE.test(window.location.pathname);
+  const userHasGIBillInterest = !!(user && user.interestedInGIBill);
+  const knownGIBillInterest = userHasGIBillInterest || hasSeenGIBillPage() || pageIsGIBill;
+
+  if (knownGIBillInterest) {
+    profile.interestedInGIBill = true;
+  }
+
+  if (pageIsGIBill) {
+    rememberGIBillInterest();
+  }
+
+  return profile;
+}
+
 async function getAndApplyRenderDecisions() {
   const user = getUser();
   const identityMap = getAuthenticatedIdentityMap(user);
-  const profile = {};
-  if (user && typeof user.interestedInGIBill !== 'undefined') {
-    profile.interestedInGIBill = !!user.interestedInGIBill;
-  }
+  const profile = getTargetProfile(user);
   // Fetch decisions without auto-rendering, so we can apply them in step with
   // the EDS page-load sequence. webPageDetails.viewName (fed from
   // window.dataLayer.page.name) is what Target uses to resolve the named view.
