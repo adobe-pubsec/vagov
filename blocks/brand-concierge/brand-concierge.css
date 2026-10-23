@@ -23,6 +23,7 @@
 }
 
 /* ---------- chat active → modal overlay ---------- */
+
 /* Collapse the inline spot while the modal covers the screen. */
 .brand-concierge.bc-active {
   height: 0;
@@ -73,6 +74,7 @@
 }
 
 /* ---------- modal closed → inline "Continue chat" ---------- */
+
 /* Restore the block's original footprint and center the reopen button where the
    welcome form used to be. The modal (.bc-panel) is hidden but not removed, so
    the chat state is preserved for when it reopens. */

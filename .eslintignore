@@ -1,3 +1,9 @@
 helix-importer-ui
 *.min.js
 scripts/alloy.js
+
+# Import tooling is not site runtime code.
+tools/importer/
+
+# Configuration exported by the Adobe Brand Concierge UI.
+blocks/brand-concierge/styleConfigurations.js
