@@ -99,6 +99,12 @@ test('local host serves test content and real handlers without exposing reposito
   assert.doesNotMatch(html, /demo/i);
   const action = await fetch(`${origin}/api/find-schools?args=${encodeURIComponent(JSON.stringify({ query: 'Cybersecurity', state: 'VA' }))}`);
   assert.equal((await action.json()).structuredContent.records.length, 3);
+  const catalog = await fetch(`${origin}/scripts/gi-bill-schools.json`);
+  assert.equal(catalog.status, 200);
+  assert.equal((await catalog.json()).length, 6);
+  const sharedModule = await fetch(`${origin}/scripts/gi-bill-catalog.mjs`);
+  assert.match(sharedModule.headers.get('content-type'), /javascript/);
+  assert.match(await sharedModule.text(), /export function findSchools/);
   const invalid = await fetch(`${origin}/api/find-schools?args=not-json`);
   assert.equal(invalid.status, 400);
   const hidden = await fetch(`${origin}/scripts/auth.js`);
@@ -114,4 +120,27 @@ test('school actions and metadata do not label the experience as a demonstration
   [search, comparison, invalid, definitions].forEach((value) => {
     assert.doesNotMatch(JSON.stringify(value), /demo/i);
   });
+});
+
+test('site and server actions share identical catalog behavior and result shapes', async () => {
+  const { findSchools: siteSearch, compareSchools: siteCompare } = await import('../../../scripts/gi-bill-catalog.mjs');
+  // eslint-disable-next-line global-require
+  const schools = require('../../../scripts/gi-bill-schools.json');
+  const args = { query: 'cybersecurity', state: 'VA', format: 'hybrid' };
+  assert.deepEqual(siteSearch(schools, args), await findSchools(args));
+  const schoolIds = ['school-potomac', 'school-commonwealth'];
+  assert.deepEqual(siteCompare(schools, { schoolIds }), await compareSchools({ schoolIds }));
+});
+
+test('shared result validation keeps empty search results distinct from invalid catalog data', async () => {
+  const { validRecord, validData } = await import('../../../scripts/gi-bill-catalog.mjs');
+  const search = await findSchools();
+  const [school] = search.structuredContent.records;
+  assert.equal(validData(search.structuredContent), true);
+  assert.equal(validData({ ...search.structuredContent, records: [] }), true);
+  assert.equal(validData({ ...search.structuredContent, records: [{ id: 'school-missing-fields' }] }), false);
+  assert.equal(validRecord(null), null);
+  assert.equal(validData({ ...search.structuredContent, records: Array(7).fill(school) }), false);
+  assert.equal(validData({ ...search.structuredContent, mode: 'comparison', records: [] }), false);
+  assert.equal(validData({ ...search.structuredContent, records: [school, school] }), false);
 });

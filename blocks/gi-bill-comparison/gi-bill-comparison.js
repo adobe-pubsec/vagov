@@ -1,3 +1,7 @@
+import {
+  findSchools, compareSchools, validRecord, validData,
+} from '../../scripts/gi-bill-catalog.mjs';
+
 const OFFICIAL_TOOL = 'https://www.va.gov/education/gi-bill-comparison-tool/';
 const MONEY = new Intl.NumberFormat('en-US', {
   style: 'currency', currency: 'USD', maximumFractionDigits: 0,
@@ -8,28 +12,6 @@ function el(tag, text, className) {
   if (text !== undefined) node.textContent = text;
   if (className) node.className = className;
   return node;
-}
-
-function validRecord(record) {
-  return record && typeof record.id === 'string' && /^school-[a-z-]+$/.test(record.id)
-    && ['name', 'city', 'state', 'type'].every((key) => (
-      typeof record[key] === 'string' && record[key].length > 0 && record[key].length <= 150
-    ))
-    && ['programs', 'formats'].every((key) => (
-      Array.isArray(record[key]) && record[key].length > 0 && record[key].length <= 10
-      && record[key].every((value) => typeof value === 'string' && value.length <= 100)
-    ))
-    && Number.isFinite(record.annualTuitionUsd) && record.annualTuitionUsd >= 0
-    && typeof record.yellowRibbon === 'boolean';
-}
-
-function validData(data) {
-  return data?.illustrativeData === true && ['search', 'comparison'].includes(data.mode)
-    && typeof data.disclaimer === 'string' && data.disclaimer.length > 0
-    && Array.isArray(data.records) && data.records.length <= 6
-    && data.records.every(validRecord)
-    && new Set(data.records.map((record) => record.id)).size === data.records.length
-    && (data.mode !== 'comparison' || (data.records.length >= 2 && data.records.length <= 3));
 }
 
 function buildTable(records) {
@@ -88,15 +70,36 @@ export default async function decorate(block, bridge) {
 
   let previousSearch;
   let version = 0;
+  let searchForm;
+  let searchStatus;
+  let schools;
   const connected = bridge?.isConnected && bridge.hostContext?.preview !== true;
-  const canCompare = connected && typeof bridge.callTool === 'function';
+  const canCompare = !connected || typeof bridge.callTool === 'function';
   const unsupportedComparison = 'Ask your assistant to compare these schools. This host does not support the comparison button.';
+
+  async function callTool(name, args) {
+    if (connected) return bridge.callTool(name, args);
+    if (!schools) {
+      const url = new URL('../../scripts/gi-bill-schools.json', import.meta.url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error(`School catalog request failed (${response.status}).`);
+      const records = await response.json();
+      if (!Array.isArray(records) || records.length > 6 || !records.every(validRecord)
+        || new Set(records.map((record) => record.id)).size !== records.length) {
+        throw new Error('School catalog has an invalid format.');
+      }
+      schools = records;
+    }
+    if (name === 'find_schools') return findSchools(schools, args);
+    if (name === 'compare_schools') return compareSchools(schools, args);
+    throw new Error(`Unsupported school action: ${name}`);
+  }
 
   function handoff(ids) {
     if (!destination) return el('p', 'The education handoff link is not configured.', 'configuration-notice');
     const link = el('a', 'Explore GI Bill benefits', 'education-link');
     const url = new URL(destination);
-    url.searchParams.set('source', 'llm-app');
+    url.searchParams.set('source', connected ? 'llm-app' : 'school-comparison');
     if (ids.length) url.searchParams.set('schoolIds', ids.join(','));
     link.href = url.href;
     link.target = '_blank';
@@ -112,6 +115,7 @@ export default async function decorate(block, bridge) {
     heading.tabIndex = -1;
     header.append(el('p', 'EDUCATION BENEFITS', 'eyebrow'), heading);
     block.replaceChildren(header);
+    if (searchForm) block.append(searchForm, searchStatus);
     const data = result?.structuredContent;
     if (result?.isError || !validData(data)) {
       const errorText = Array.isArray(result?.content)
@@ -200,7 +204,7 @@ export default async function decorate(block, bridge) {
           status.textContent = 'Loading your comparison...';
           block.setAttribute('aria-busy', 'true');
           try {
-            const comparison = await bridge.callTool('compare_schools', { schoolIds: [...selected] });
+            const comparison = await callTool('compare_schools', { schoolIds: [...selected] });
             if (version === currentVersion) {
               render(comparison);
               block.querySelector('h2')?.focus();
@@ -226,7 +230,66 @@ export default async function decorate(block, bridge) {
   }
 
   if (!connected) {
-    block.replaceChildren(el('p', 'This widget needs a connected LLM host to display school results. Use the local GI Bill app preview to explore schools.'));
+    searchForm = el('form', undefined, 'school-search');
+    const queryLabel = el('label', 'Program or school');
+    const query = document.createElement('input');
+    query.name = 'query';
+    query.type = 'search';
+    query.maxLength = 100;
+    query.value = 'cybersecurity';
+    queryLabel.append(query);
+    searchForm.append(queryLabel);
+    const filters = [
+      ['state', 'State', [['', 'All locations'], ['VA', 'Virginia'], ['MD', 'Maryland'], ['DC', 'Washington, DC']], 'VA'],
+      ['format', 'Attendance', [['', 'Any format'], ['in-person', 'In person'], ['hybrid', 'Hybrid'], ['online', 'Online']], ''],
+    ];
+    filters.forEach(([name, title, options, value]) => {
+      const label = el('label', title);
+      const select = document.createElement('select');
+      select.name = name;
+      options.forEach(([optionValue, text]) => {
+        const option = el('option', text);
+        option.value = optionValue;
+        select.append(option);
+      });
+      select.value = value;
+      label.append(select);
+      searchForm.append(label);
+    });
+    const submit = el('button', 'Find schools');
+    submit.type = 'submit';
+    searchForm.append(submit);
+    searchStatus = el('p', undefined, 'search-status');
+    searchStatus.setAttribute('role', 'status');
+    searchStatus.setAttribute('aria-live', 'polite');
+
+    const search = async () => {
+      submit.disabled = true;
+      searchStatus.textContent = 'Searching schools...';
+      try {
+        const result = await callTool('find_schools', Object.fromEntries(new FormData(searchForm)));
+        render(result);
+        searchStatus.textContent = result.isError
+          ? 'Check the search filters below.'
+          : `${result.structuredContent.records.length} schools found.`;
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[gi-bill-comparison] School search failed:', error);
+        render({
+          isError: true,
+          content: [{ type: 'text', text: 'Unable to load schools. Select Find schools to try again.' }],
+        });
+        searchStatus.textContent = 'School search is unavailable.';
+      } finally {
+        submit.disabled = false;
+      }
+    };
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      search();
+    });
+    block.replaceChildren(searchForm, searchStatus);
+    await search();
     return;
   }
   try {

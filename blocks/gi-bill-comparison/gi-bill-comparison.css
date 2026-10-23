@@ -54,6 +54,33 @@
   margin: 24px 0;
 }
 
+.gi-bill-comparison .school-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+
+.gi-bill-comparison .school-search label {
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+  font-weight: 700;
+}
+
+.gi-bill-comparison .school-search input,
+.gi-bill-comparison .school-search select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #565c65;
+  border-radius: 0;
+  padding: 8px 12px;
+  background: #fff;
+  color: #1b1b1b;
+  font: inherit;
+}
+
 .gi-bill-comparison .school-card {
   min-width: 0;
   padding: 20px;
@@ -122,6 +149,10 @@
   background: #dfe1e2;
   color: #454545;
   cursor: not-allowed;
+}
+
+.gi-bill-comparison .school-search button {
+  margin: 0;
 }
 
 .gi-bill-comparison a {
