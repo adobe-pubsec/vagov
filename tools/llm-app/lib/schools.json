@@ -1,0 +1,68 @@
+[
+  {
+    "id": "school-potomac",
+    "name": "Potomac Technical College",
+    "city": "Alexandria",
+    "state": "VA",
+    "type": "Public, two-year",
+    "programs": ["Cybersecurity", "Information technology"],
+    "formats": ["in-person", "hybrid"],
+    "annualTuitionUsd": 6200,
+    "yellowRibbon": false
+  },
+  {
+    "id": "school-commonwealth",
+    "name": "Commonwealth Metropolitan University",
+    "city": "Fairfax",
+    "state": "VA",
+    "type": "Public, four-year",
+    "programs": ["Cybersecurity", "Computer science", "Business"],
+    "formats": ["in-person", "hybrid", "online"],
+    "annualTuitionUsd": 14500,
+    "yellowRibbon": true
+  },
+  {
+    "id": "school-capital",
+    "name": "Capital Veterans Institute",
+    "city": "Arlington",
+    "state": "VA",
+    "type": "Private nonprofit, four-year",
+    "programs": ["Cybersecurity", "Information technology", "Business"],
+    "formats": ["hybrid", "online"],
+    "annualTuitionUsd": 32000,
+    "yellowRibbon": true
+  },
+  {
+    "id": "school-shenandoah",
+    "name": "Shenandoah Career College",
+    "city": "Winchester",
+    "state": "VA",
+    "type": "Public, two-year",
+    "programs": ["Nursing", "Advanced manufacturing"],
+    "formats": ["in-person"],
+    "annualTuitionUsd": 5800,
+    "yellowRibbon": false
+  },
+  {
+    "id": "school-district",
+    "name": "District Digital University",
+    "city": "Washington",
+    "state": "DC",
+    "type": "Private nonprofit, four-year",
+    "programs": ["Cybersecurity", "Data science"],
+    "formats": ["in-person", "online"],
+    "annualTuitionUsd": 36000,
+    "yellowRibbon": true
+  },
+  {
+    "id": "school-chesapeake",
+    "name": "Chesapeake Applied Sciences College",
+    "city": "Rockville",
+    "state": "MD",
+    "type": "Public, four-year",
+    "programs": ["Cybersecurity", "Computer science"],
+    "formats": ["hybrid", "online"],
+    "annualTuitionUsd": 12000,
+    "yellowRibbon": false
+  }
+]

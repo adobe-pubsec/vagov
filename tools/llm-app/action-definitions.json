@@ -1,0 +1,31 @@
+[
+  {
+    "code": "find_schools",
+    "name": "Find GI Bill schools",
+    "description": "Search schools by a short program, school, or city keyword, plus optional state and attendance format. The catalog contains illustrative school information, not verified VA-approved institution data, and does not determine GI Bill eligibility. Include the data note with results. Use returned IDs for compare_schools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": { "type": "string", "maxLength": 100, "description": "Short program, school, or city keyword; omit to browse all." },
+        "state": { "type": "string", "enum": ["VA", "MD", "DC"] },
+        "format": { "type": "string", "enum": ["in-person", "hybrid", "online"] }
+      },
+      "additionalProperties": false
+    },
+    "annotations": { "readOnlyHint": true, "destructiveHint": false, "openWorldHint": false, "idempotentHint": true }
+  },
+  {
+    "code": "compare_schools",
+    "name": "Compare GI Bill schools",
+    "description": "Compare two or three schools using exact IDs returned by find_schools. School information, annual tuition, and Yellow Ribbon participation are illustrative, not verified institution data or estimates of benefits payable or out-of-pocket cost. Do not infer eligibility, school approval, or recommend a best school without user criteria. Include the data note.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "schoolIds": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 3, "uniqueItems": true }
+      },
+      "required": ["schoolIds"],
+      "additionalProperties": false
+    },
+    "annotations": { "readOnlyHint": true, "destructiveHint": false, "openWorldHint": false, "idempotentHint": true }
+  }
+]
