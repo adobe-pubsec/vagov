@@ -1,0 +1,16 @@
+{
+  "env": { "node": true },
+  "rules": {
+    "import/extensions": ["error", { "js": "always", "cjs": "always", "json": "always" }]
+  },
+  "overrides": [
+    {
+      "files": ["preview.js"],
+      "env": { "node": false, "browser": true }
+    },
+    {
+      "files": ["serve.cjs"],
+      "rules": { "no-console": ["error", { "allow": ["error"] }] }
+    }
+  ]
+}
