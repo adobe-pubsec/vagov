@@ -25,6 +25,10 @@ npm i
 npm run lint
 ```
 
+This is also the push workflow's validation command. It checks authored JavaScript
+(`.js`, `.cjs`, and `.mjs`) and site CSS. Import tooling and the Adobe-exported
+Brand Concierge configuration are excluded from ESLint.
+
 ## Local development
 
 1. Create a new repository based on the `aem-boilerplate` template

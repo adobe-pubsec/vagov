@@ -119,7 +119,8 @@ function normalizeBoolean(value) {
 function signInAs(record, providerKey) {
   const provider = PROVIDERS[providerKey] ? providerKey : 'idme';
   const rememberedGIBillInterest = hasPersistedGIBillInterest();
-  const interestedInGIBill = normalizeBoolean(record.interestedInGIBill) || rememberedGIBillInterest;
+  const interestedInGIBill = normalizeBoolean(record.interestedInGIBill)
+    || rememberedGIBillInterest;
   const user = {
     id: record.id,
     email: record.email,

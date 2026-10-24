@@ -5,11 +5,14 @@ const findSchools = require('./actions/find-schools/index.js');
 const compareSchools = require('./actions/compare-schools/index.js');
 
 const blockPath = path.resolve(__dirname, '../../blocks/gi-bill-comparison');
+const scriptsPath = path.resolve(__dirname, '../../scripts');
 const assets = new Map([
   ['/', [path.join(__dirname, 'preview.html'), 'text/html']],
   ['/preview.js', [path.join(__dirname, 'preview.js'), 'text/javascript']],
   ['/blocks/gi-bill-comparison/gi-bill-comparison.js', [path.join(blockPath, 'gi-bill-comparison.js'), 'text/javascript']],
   ['/blocks/gi-bill-comparison/gi-bill-comparison.css', [path.join(blockPath, 'gi-bill-comparison.css'), 'text/css']],
+  ['/scripts/gi-bill-catalog.mjs', [path.join(scriptsPath, 'gi-bill-catalog.mjs'), 'text/javascript']],
+  ['/scripts/gi-bill-schools.json', [path.join(scriptsPath, 'gi-bill-schools.json'), 'application/json']],
 ]);
 const handlers = new Map([
   ['/api/find-schools', findSchools],
