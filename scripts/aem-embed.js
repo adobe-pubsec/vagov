@@ -3,7 +3,6 @@
  * Include content from one Helix page in any other web surface.
  * https://www.hlx.live/developer/block-collection/TBD
  */
-
 // eslint-disable-next-line import/prefer-default-export
 export class AEMEmbed extends HTMLElement {
   constructor() {
