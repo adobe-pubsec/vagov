@@ -70,8 +70,8 @@ text, and empty records, not a successful-looking partial comparison.
 ## Widget content model
 
 The shared [gi-bill-comparison block](../../blocks/gi-bill-comparison/gi-bill-comparison.js)
-renders both actions. Author one cell containing a link to the desired HTTPS
-education landing page:
+renders both actions. An empty block cell is sufficient for search and
+comparison. Optionally add a link to the desired HTTPS education landing page:
 
 | GI Bill Comparison |
 | --- |
@@ -79,8 +79,9 @@ education landing page:
 
 This is a dynamic configuration block; school records are supplied by the
 handler, not authored as table rows. The first link is used; extra cells are
-ignored. Missing or unsafe links produce a configuration notice instead of a
-CTA. The standalone test content is `preview.html`.
+ignored. With no link, the optional education CTA is omitted without an error.
+An authored unsafe link still produces a configuration notice instead of a CTA.
+The standalone test content is `preview.html`.
 
 On a normal EDS page, author the block table above; do not link directly to
 the JavaScript file. The block supplies its own program, state, and attendance

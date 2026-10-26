@@ -96,7 +96,8 @@ export default async function decorate(block, bridge) {
   }
 
   function handoff(ids) {
-    if (!destination) return el('p', 'The education handoff link is not configured.', 'configuration-notice');
+    if (!authoredLink) return null;
+    if (!destination) return el('p', 'The education handoff link is invalid.', 'configuration-notice');
     const link = el('a', 'Explore GI Bill benefits', 'education-link');
     const url = new URL(destination);
     url.searchParams.set('source', connected ? 'llm-app' : 'school-comparison');
@@ -145,7 +146,9 @@ export default async function decorate(block, bridge) {
     sources.append(official);
 
     if (data.mode === 'comparison') {
-      block.append(buildTable(data.records), handoff(data.records.map((record) => record.id)));
+      block.append(buildTable(data.records));
+      const continueLink = handoff(data.records.map((record) => record.id));
+      if (continueLink) block.append(continueLink);
       if (previousSearch) {
         const back = el('button', 'Back to results');
         back.type = 'button';
@@ -190,9 +193,11 @@ export default async function decorate(block, bridge) {
             });
             compare.disabled = selected.size < 2 || !canCompare;
             status.textContent = canCompare ? `${selected.size} selected. Choose 2 or 3 schools to compare.` : unsupportedComparison;
-            const nextLink = handoff([...selected]);
-            continueLink.replaceWith(nextLink);
-            continueLink = nextLink;
+            if (continueLink) {
+              const nextLink = handoff([...selected]);
+              continueLink.replaceWith(nextLink);
+              continueLink = nextLink;
+            }
           });
           label.append(checkbox, el('span', `Compare ${record.name}`));
           card.append(label);
@@ -223,7 +228,8 @@ export default async function decorate(block, bridge) {
             block.removeAttribute('aria-busy');
           }
         });
-        block.append(cards, status, compare, continueLink);
+        block.append(cards, status, compare);
+        if (continueLink) block.append(continueLink);
       }
     }
     block.append(sources, el('p', data.disclaimer, 'data-note'));
