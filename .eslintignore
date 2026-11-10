@@ -2,6 +2,9 @@ helix-importer-ui
 *.min.js
 scripts/alloy.js
 
+# Vendored unchanged from the working Sunstar EDS SDK.
+scripts/llmapps-sdk.js
+
 # Import tooling is not site runtime code.
 tools/importer/
 
