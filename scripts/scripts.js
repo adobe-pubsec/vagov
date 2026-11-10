@@ -917,6 +917,4 @@ async function loadPage() {
   loadDelayed();
 }
 
-if (!window.hlx?.suppressLoadPage) {
-  loadPage();
-}
+loadPage();
