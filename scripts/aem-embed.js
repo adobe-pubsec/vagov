@@ -3,6 +3,8 @@
  * Include content from one Helix page in any other web surface.
  * https://www.hlx.live/developer/block-collection/TBD
  */
+import { LLMApp } from './llmapps-sdk.js';
+
 // eslint-disable-next-line import/prefer-default-export
 export class AEMEmbed extends HTMLElement {
   constructor() {
@@ -18,6 +20,13 @@ export class AEMEmbed extends HTMLElement {
     window.hlx = window.hlx || {};
     window.hlx.suppressLoadPage = true;
     [window.hlx.codeBasePath] = new URL(import.meta.url).pathname.split('/scripts/');
+
+    this.bridge = new LLMApp({
+      appInfo: { name: 'AEMEmbed', version: '1.0.0' },
+      appCapabilities: {
+        availableDisplayModes: ['inline', 'fullscreen'],
+      },
+    });
   }
 
   async loadBlock(body, block, blockName, origin) {
@@ -42,6 +51,7 @@ export class AEMEmbed extends HTMLElement {
       // eslint-disable-next-line no-await-in-loop
       const decorateBlock = await import(blockScriptUrl);
       if (decorateBlock.default) {
+        // Keep blocks standalone; the embed uses the SDK for host lifecycle only.
         // eslint-disable-next-line no-await-in-loop
         await decorateBlock.default(block);
       }
@@ -160,6 +170,8 @@ export class AEMEmbed extends HTMLElement {
         const plainUrl = url.endsWith('/') ? `${url}index.plain.html` : `${url}.plain.html`;
         const { href, origin } = new URL(plainUrl);
 
+        const bridgeReady = this.bridge.connect();
+
         // Load fragment
         const resp = await fetch(href);
         if (!resp.ok) {
@@ -189,6 +201,9 @@ export class AEMEmbed extends HTMLElement {
         fonts.setAttribute('rel', 'stylesheet');
         fonts.setAttribute('href', `${origin}${window.hlx.codeBasePath}/styles/fonts.css`);
         this.shadowRoot.appendChild(fonts);
+
+        await bridgeReady;
+        if (this.bridge.isConnected) this.bridge.autoResize(body);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.log(err || 'An error occured while loading the content');
